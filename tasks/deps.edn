@@ -1,0 +1,2 @@
+{:paths ["src"]
+ :deps {com.biffweb/tasks {:git/url "https://github.com/jacobobryant/biff" :sha "6353c406adef0344484b49a5ef2282eab77c2347" :deps/root "tasks"}}}
