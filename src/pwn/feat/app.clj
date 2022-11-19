@@ -38,18 +38,17 @@
            :type "text"
            :placeholder "Work title"}]
          [:button.btn {:type "submit"} "Create"])
-        (let [works (first
-                     (q db
-                        '{:find [(pull works [*])]
-                          :where [[works :work/owner user-id]]
-                          :in [user-id]}
-                        (:uid session)))]
+        (let [works (q db
+                       '{:find [(pull works [*])]
+                         :where [[works :work/owner user-id]]
+                         :in [user-id]}
+                       (:uid session))]
           (if (seq works)
             [:div
              [:.h-3]
              [:div "Works:"
               (for [work works]
-                [:div (:work/title work)])]]
+                [:div (:work/title (first work))])]]
             [:div "You have no works."]))]
        (biff/form
         {:action "/app/author"}
