@@ -62,7 +62,9 @@
       (for [work works]
         (let [work-map (first work)]
          [:div
-          (:work/title work-map)
+          [:a.text-blue-500 {:href (str "/app/work/" (:xt/id work-map))}
+           (:work/title work-map)]
+          " | "
           (biff/form
            {:action (str "/app/work/" (:xt/id work-map) "/delete")
             :class "inline"}
@@ -123,10 +125,20 @@
           (handler req)))
       (handler req))))
 
+(defn work [{:keys [work _owner]}]
+  (ui/page
+   {}
+   [:div (:work/title work)]
+   [:.h-3]
+   (biff/form
+    {:action (str "/app/work/" (:xt/id work) "/chapter")}
+    [:button.btn {:type "submit"} "Add a new chapter"])))
+
 (def features
   {:routes ["/app" {:middleware [mid/wrap-signed-in]}
             ["" {:get app}]
             ["/author" {:post new-author}]
             ["/work" {:post new-work}]
             ["/work/:id" {:middleware [wrap-work]}
+             ["" {:get work}]
              ["/delete" {:post delete-work}]]]})
