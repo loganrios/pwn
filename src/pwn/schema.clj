@@ -4,26 +4,23 @@
 
 (def schema
   {:user/id :uuid
-   :user/email :string
-   :user/joined-at inst?
-   :user/author :author/id
    :user [:map {:closed true}
           [:xt/id :user/id]
-          :user/email
-          :user/joined-at
-          [:user/author {:optional true}]]
+          [:user/email :string]
+          [:user/joined-at inst?]]
 
    :author/id :uuid
    :author/pen-name :string
+   :author/user :user/id
    :author [:map {:closed true}
             [:xt/id :author/id]
-            :author/pen-name]
+            [:author/user :user/id]
+            [:author/pen-name :string]]
 
    :work/id :uuid
-   :work/owner :user/id
-   :work/title :string
    :work [:map {:closed true}
           [:xt/id :work/id]
-          :work/title]})
+          [:work/owner :user/id]
+          [:work/title :string]]})
 
 (def malli-opts {:registry (malr/composite-registry malc/default-registry schema)})

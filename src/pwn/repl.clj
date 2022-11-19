@@ -1,8 +1,14 @@
 (ns pwn.repl
-  (:require [com.biffweb :as biff :refer [q]]))
+  (:require [com.biffweb :as biff :refer [q]]
+            [xtdb.api :as xt]))
 
 (defn get-sys []
   (biff/assoc-db @biff/system))
+
+(defn fq [db]
+  (q db
+     '{:find [(pull e [*])]
+       :where [[e :xt/id]]}))
 
 (comment
 
@@ -11,12 +17,24 @@
   ;; terminal. It may not be necessary in your editor.
   (biff/fix-print (biff/refresh))
 
+  (let [{:keys [biff/db]} (get-sys)]
+    (q db '{:find [e]
+            :where [[e :author/user]]}))
+
+  (let [{:keys [biff/db]} (get-sys)]
+    (ffirst
+     (q db
+        '{:find [(pull e [*])]
+          :where [[e :author/pen-name "Brogan"]]})))
+
   (let [{:keys [biff/db] :as sys} (get-sys)]
     (q db
        '{:find (pull user [*])
          :where [[user :user/email]]}))
 
   (sort (keys @biff/system))
+
+  (fq (:biff/db (get-sys)))
 
   ;; Check the terminal for output.
   (biff/submit-job (get-sys) :echo {:foo "bar"})

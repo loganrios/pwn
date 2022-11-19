@@ -20,27 +20,68 @@
         "Sign out"])
       "."]
      [:.h-3]
-     (biff/form
-      {:action "/author"}
-      [:button.btn {:type "submit"} "Register as an author"]))))
+     (if-some [author (ffirst
+                       (q db
+                          '{:find [(pull author [*])]
+                            :where [[author :author/user user-id]]
+                            :in [user-id]}
+                          (:uid session)))]
+       [:div
+        [:div "Your author is: " (:author/pen-name author)]
+        [:div.text-sm "Author UUID: " (:xt/id author)]
+        [:.h-3]
+        (biff/form
+         {:action "/app/work"}
+         [:div "Create a new work"]
+         [:input#title
+          {:name "title"
+           :type "text"
+           :placeholder "Work title"}]
+         [:button.btn {:type "submit"} "Create"])
+        (let [works (first
+                     (q db
+                        '{:find [(pull works [*])]
+                          :where [[works :work/owner user-id]]
+                          :in [user-id]}
+                        (:uid session)))]
+          (if (seq works)
+            [:div
+             [:.h-3]
+             [:div "Works:"
+              (for [work works]
+                [:div (:work/title work)])]]
+            [:div "You have no works."]))]
+       (biff/form
+        {:action "/app/author"}
+        [:div "Become an author"]
+        [:input#pen-name
+         {:name "pen-name"
+          :type "text"
+          :placeholder "Pen Name"}]
+        [:button.btn {:type "submit"} "Create"])))))
 
-(defn new-author [{:keys [session] :as req}]
+(defn new-author [{:keys [params session] :as req}]
   (let [author-id (random-uuid)]
     (biff/submit-tx req
                     [{:db/doc-type :author
                       :xt/id author-id
-                      :author/user (:uid session)}])
+                      :author/user (:uid session)
+                      :author/pen-name (:pen-name params)}])
     {:status 303
-     :headers {"Location" (str "/author/" author-id)}}))
+     :headers {"Location" "/app"}}))
 
-(defn author [{:keys [biff/db path-params] :as req}]
-  (if-some [author (xt/entity db (parse-uuid (:id path-params)))]
-    (ui/page
-     {}
-     [:div "Author:" (:xt/id author)])))
+(defn new-work [{:keys [params session] :as req}]
+  (let [work-id (random-uuid)]
+    (biff/submit-tx req
+                    [{:db/doc-type :work
+                      :xt/id work-id
+                      :work/owner (:uid session)
+                      :work/title (:title params)}]))
+  {:status 303
+   :headers {"Location" "/app"}})
 
 (def features
   {:routes ["/app" {:middleware [mid/wrap-signed-in]}
             ["" {:get app}]
             ["/author" {:post new-author}]
-            ["/author/:id" {:get author}]]})
+            ["/work" {:post new-work}]]})
