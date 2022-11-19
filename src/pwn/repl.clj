@@ -21,21 +21,12 @@
     (q db '{:find [e]
             :where [[e :author/user]]}))
 
-  (let [{:keys [biff/db]} (get-sys)]
-    (ffirst
-     (q db
-        '{:find [(pull e [*])]
-          :where [[e :author/pen-name "Brogan"]]})))
-
-  (let [{:keys [biff/db] :as sys} (get-sys)]
-    (q db
-       '{:find (pull user [*])
-         :where [[user :user/email]]}))
-
   (sort (keys @biff/system))
 
   (fq (:biff/db (get-sys)))
 
   ;; Check the terminal for output.
   (biff/submit-job (get-sys) :echo {:foo "bar"})
-  (deref (biff/submit-job-for-result (get-sys) :echo {:foo "bar"})))
+  (deref (biff/submit-job-for-result (get-sys) :echo {:foo "bar"}))
+
+ nil)

@@ -48,7 +48,11 @@
              [:.h-3]
              [:div "Works:"
               (for [work works]
-                [:div (:work/title (first work))])]]
+                [:div
+                 (:work/title (first work))
+                 (biff/form
+                  {:action (str "/app/work/" (:xt/id (first work)) "/delete")}
+                  [:button.btn {:type "submit"} "Delete"])])]]
             [:div "You have no works."]))]
        (biff/form
         {:action "/app/author"}
@@ -79,8 +83,27 @@
   {:status 303
    :headers {"Location" "/app"}})
 
+(defn delete-work [{:keys [biff/db work] :as req}]
+  (biff/submit-tx req
+                  [{:db/op :delete
+                    :xt/id (:xt/id work)}])
+  {:status 303
+   :headers {"Location" "/app"}})
+
+(defn wrap-work [handler]
+  (fn [{:keys [biff/db session path-params] :as req}]
+   (if-some [work (xt/entity db (parse-uuid (:id path-params)))]
+     (let [owner (:work/owner work)
+           user (:uid session)]
+       (if (= owner user)
+         (handler (assoc req :work work :owner owner))
+         (handler req)))
+     (handler req))))
+
 (def features
   {:routes ["/app" {:middleware [mid/wrap-signed-in]}
             ["" {:get app}]
             ["/author" {:post new-author}]
-            ["/work" {:post new-work}]]})
+            ["/work" {:post new-work}]
+            ["/work/:id" {:middleware [wrap-work]}
+             ["/delete" {:post delete-work}]]]})
