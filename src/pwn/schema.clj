@@ -21,6 +21,7 @@
    :work [:map {:closed true}
           [:xt/id :work/id]
           [:work/owner :user/id]
+          [:work/blurb {:optional true} :string]
           [:work/title :string]]})
 
 (def malli-opts {:registry (malr/composite-registry malc/default-registry schema)})

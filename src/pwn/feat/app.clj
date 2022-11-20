@@ -61,14 +61,14 @@
      [:div "Works:"
       (for [work works]
         (let [work-map (first work)]
-         [:div
-          [:a.text-blue-500 {:href (str "/app/work/" (:xt/id work-map))}
-           (:work/title work-map)]
-          " | "
-          (biff/form
-           {:action (str "/app/work/" (:xt/id work-map) "/delete")
-            :class "inline"}
-           [:button.text-blue-500.hover:text-blue-800 {:type "submit"} "Delete"])]))]]
+          [:div
+           [:a.text-blue-500.hover:text-blue-800 {:href (str "/app/work/" (:xt/id work-map))}
+            (:work/title work-map)]
+           " | "
+           (biff/form
+            {:action (str "/app/work/" (:xt/id work-map) "/delete")
+             :class "inline"}
+            [:button.text-blue-500.hover:text-blue-800 {:type "submit"} "Delete"])]))]]
     [:div "You have no works."]))
 
 (defn app [{:keys [session biff/db] :as req}]
@@ -125,10 +125,33 @@
           (handler req)))
       (handler req))))
 
-(defn work [{:keys [work _owner]}]
+(defn update-blurb [{:keys [work params] :as req}]
+  (biff/submit-tx req
+                  [[::xt/put
+                    (assoc work :work/blurb (:blurb params))]])
+  {:status 303
+   :headers {"Location" (str "/app/work/" (:xt/id work))}})
+
+(defn blurb-form [work]
+ (biff/form
+  {:action (str "/app/work/" (:xt/id work) "/blurb")}
+  (let [{:keys [work/blurb]} work]
+    [:textarea#blurb
+     {:class "resize rounded-md"
+      :name "blurb"
+      :wrap "soft"
+      :placeholder (when (not (seq blurb)) "Your blurb here.")}
+     blurb])
+  [:.h-1]
+  [:button.btn {:type "submit"} "Update blurb"]))
+
+(defn work [{:keys [work owner]}]
   (ui/page
    {}
-   [:div (:work/title work)]
+   [:div (:work/title work)
+    [:.text-sm "Owned by: " owner]]
+   [:.h-3]
+   (blurb-form work)
    [:.h-3]
    (biff/form
     {:action (str "/app/work/" (:xt/id work) "/chapter")}
@@ -141,4 +164,5 @@
             ["/work" {:post new-work}]
             ["/work/:id" {:middleware [wrap-work]}
              ["" {:get work}]
-             ["/delete" {:post delete-work}]]]})
+             ["/delete" {:post delete-work}]
+             ["/blurb" {:post update-blurb}]]]})
