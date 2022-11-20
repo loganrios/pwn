@@ -145,10 +145,31 @@
   [:.h-1]
   [:button.btn {:type "submit"} "Update blurb"]))
 
+(defn update-title [{:keys [work params] :as req}]
+  (biff/submit-tx req
+                  [[::xt/put
+                    (assoc work :work/title (:title params))]])
+  {:status 303
+   :headers {"Location" (str "/app/work/" (:xt/id work))}})
+
+(defn title-form [work]
+  (biff/form
+   {:action (str "/app/work/" (:xt/id work) "/title")}
+   (let [{:keys [work/title]} work]
+     [:input#title
+      {:name "title"
+       :type "text"
+       :value title
+       :required true}])
+      
+   [:h-1]
+   [:button.btn {:type "submit"} "Update title"]))
+
 (defn work [{:keys [work owner]}]
   (ui/page
    {}
-   [:div (:work/title work)
+   [:div
+    (title-form work)
     [:.text-sm "Owned by: " owner]]
    [:.h-3]
    (blurb-form work)
@@ -165,4 +186,5 @@
             ["/work/:id" {:middleware [wrap-work]}
              ["" {:get work}]
              ["/delete" {:post delete-work}]
-             ["/blurb" {:post update-blurb}]]]})
+             ["/blurb" {:post update-blurb}]
+             ["/title" {:post update-title}]]]})
