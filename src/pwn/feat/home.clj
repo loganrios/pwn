@@ -58,5 +58,5 @@
    (signin-form sys)))
 
 (def features
-  {:routes ["" {:middleware [mid/wrap-redirect-signed-in]}
+  {:routes [""
             ["/" {:get home}]]})

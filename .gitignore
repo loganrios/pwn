@@ -10,3 +10,4 @@
 .clj-kondo/
 .lsp/
 .portal/
+/resources/words-source.txt

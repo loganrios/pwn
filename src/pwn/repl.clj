@@ -5,10 +5,18 @@
 (defn get-sys []
   (biff/assoc-db @biff/system))
 
-(defn fq [db]
+(defn fq
+  "List all entities in the database."
+  [db]
   (q db
      '{:find [(pull e [*])]
        :where [[e :xt/id]]}))
+
+(defn em->uid [all-users em]
+  (->> all-users
+       (filter #(= em (:user/email %)))
+       (first)
+       (:xt/id)))
 
 (comment
 
