@@ -1,8 +1,8 @@
 (ns pwn.feat.home
-  (:require [com.biffweb :as biff]
+  (:require [com.biffweb :as biff :refer [q]]
             [pwn.middleware :as mid]
             [pwn.ui :as ui]
-            [pwn.util :as util]))
+            [pwn.util :as util :refer [uid->author]]))
 
 (defn recaptcha-disclosure [{:keys [link-class]}]
   [:span "This site is protected by reCAPTCHA and the Google "
@@ -49,13 +49,27 @@
              :async "async"
              :defer "defer"}]
    [:script (biff/unsafe
-             (str "function onSubscribe(token) { document.getElementById('signin-form').submit(); }"))]])
+             (str "function onSubscribe(token) { document.getElementById('signin-form').submit()}))]]); }"))]])
+
+(defn get-all-works [{:keys [biff/db] :as req}]
+  (q db
+     '{:find (pull work [*])
+       :where [[work :work/title]]}))
+
+(defn works-list [db works]
+  (for [work works]
+    [:div
+     (:work/title work)
+     " | By: " (:author/pen-name (uid->author db (:work/owner work)))
+     [:.h-3]]))
 
 (defn home [sys]
   (ui/page
    {:base/head (when (util/email-signin-enabled? sys)
                  recaptcha-scripts)}
-   (signin-form sys)))
+   (signin-form sys)
+   [:.h-3]
+   (works-list (:biff/db sys) (get-all-works sys))))
 
 (def features
   {:routes [""

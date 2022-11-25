@@ -1,5 +1,5 @@
 (ns pwn.util
-  (:require [com.biffweb :as biff]
+  (:require [com.biffweb :as biff :refer [q]]
             [camel-snake-kebab.core :as csk]
             [camel-snake-kebab.extras :as cske]
             [clj-http.client :as http]))
@@ -20,3 +20,11 @@
 (defn send-email [{:keys [postmark/from] :as sys} form-params]
   (biff/catchall-verbose
    (postmark sys :post "/email" (merge {:from from} form-params))))
+
+(defn uid->author [db user-id]
+  (-> (q db
+         '{:find [(pull author [*])]
+           :where [[author :author/user uid]]
+           :in [uid]}
+         user-id)
+      (ffirst)))

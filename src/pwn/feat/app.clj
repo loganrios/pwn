@@ -2,6 +2,7 @@
   (:require [com.biffweb :as biff :refer [q]]
             [pwn.middleware :as mid]
             [pwn.ui :as ui]
+            [pwn.util :as util :refer [uid->author]]
             [rum.core :as rum]
             [xtdb.api :as xt]
             [ring.adapter.jetty9 :as jetty]
@@ -38,14 +39,6 @@
      :type "text"
      :placeholder "Chapter title"}]
    [:button.btn {:type "submit"} "Create"]))
-
-(defn uid->author [db user-id]
-  (-> (q db
-         '{:find [(pull author [*])]
-           :where [[author :author/user uid]]
-           :in [uid]}
-         user-id)
-      (ffirst)))
 
 (defn become-author-form []
   (biff/form
@@ -139,7 +132,7 @@
                    [{:db/doc-type :chapter
                      :xt/id chapter-id
                      :chapter/title (:title params)
-                     :chapter/created-at (java.util.Date.)}
+                     :chapter/created-at (biff/now)}
                     [::xt/put
                      (assoc work :work/chapters (conj (vec (:work/chapters work)) chapter-id))]]))
   {:status 303

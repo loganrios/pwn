@@ -59,7 +59,8 @@
   {:db/doc-type :chapter
    :xt/id id
    :chapter/title (str "Chapter " id)
-   :chapter/content (random-content)})
+   :chapter/content (random-content)
+   :chapter/created-at (biff/add-seconds (biff/now) (rand-int 50))})
 
 (def chapter-ids
   (for [_ (range 30)]
