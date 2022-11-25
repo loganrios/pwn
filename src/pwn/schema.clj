@@ -29,6 +29,8 @@
    :chapter [:map {:closed true}
              [:xt/id :chapter/id]
              [:chapter/title :string]
-             [:chapter/content {:optional true} :string]]})
+             [:chapter/content {:optional true} :string]
+             [:chapter/created-at inst?]]})
+
 
 (def malli-opts {:registry (malr/composite-registry malc/default-registry schema)})

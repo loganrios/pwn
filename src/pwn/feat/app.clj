@@ -87,6 +87,8 @@
        [:a.text-blue-500.hover:text-blue-800 {:href (str "/app/work/" (:xt/id work) "/chapter/" (:xt/id chapter))}
         (:chapter/title chapter)]
        " | "
+       [:span.text-gray-600 (biff/format-date (:chapter/created-at chapter) "d MMM H:mm aa")]
+       " | "
        (biff/form
         {:action (str "/app/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/delete")
          :class "inline"}
@@ -136,7 +138,8 @@
     (biff/submit-tx req
                    [{:db/doc-type :chapter
                      :xt/id chapter-id
-                     :chapter/title (:title params)}
+                     :chapter/title (:title params)
+                     :chapter/created-at (java.util.Date.)}
                     [::xt/put
                      (assoc work :work/chapters (conj (vec (:work/chapters work)) chapter-id))]]))
   {:status 303
