@@ -1,6 +1,7 @@
 (ns pwn.feat.app
   (:require [com.biffweb :as biff :refer [q]]
-            [pwn.middleware :as mid]
+            [pwn.middleware :as mid :refer [wrap-work
+                                            wrap-chapter]]
             [pwn.ui :as ui]
             [pwn.util :as util :refer [uid->author]]
             [rum.core :as rum]
@@ -154,21 +155,6 @@
   {:status 303
    :headers {"Location" (str "/app/work/" (:xt/id work))}})
 
-(defn wrap-work [handler]
-  (fn [{:keys [biff/db session path-params] :as req}]
-    (if-some [work (xt/entity db (parse-uuid (:work-id path-params)))]
-      (let [owner (:work/owner work)
-            user (:uid session)]
-        (if (= owner user)
-          (handler (assoc req :work work :owner owner))
-          (handler req)))
-      (handler req))))
-
-(defn wrap-chapter [handler]
-  (fn [{:keys [biff/db path-params] :as req}]
-    (if-some [chapter (xt/entity db (parse-uuid (:chapter-id path-params)))]
-      (handler (assoc req :chapter chapter))
-      (handler req))))
 
 (defn update-blurb [{:keys [work params] :as req}]
   (biff/submit-tx req

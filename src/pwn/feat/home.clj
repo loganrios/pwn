@@ -1,8 +1,10 @@
 (ns pwn.feat.home
   (:require [com.biffweb :as biff :refer [q]]
-            [pwn.middleware :as mid]
+            [pwn.middleware :as mid :refer [wrap-work
+                                            wrap-chapter]]
             [pwn.ui :as ui]
-            [pwn.util :as util :refer [uid->author]]))
+            [pwn.util :as util :refer [uid->author]]
+            [xtdb.api :as xt]))
 
 (defn recaptcha-disclosure [{:keys [link-class]}]
   [:span "This site is protected by reCAPTCHA and the Google "
@@ -59,9 +61,20 @@
 (defn works-list [db works]
   (for [work works]
     [:div
-     (:work/title work)
+     [:a.text-blue-500.hover:text-blue-800 {:href (str "/work/" (:xt/id work))}
+      (:work/title work)]
      " | By: " (:author/pen-name (uid->author db (:work/owner work)))
      [:.h-3]]))
+
+(defn chapters-list [db work chapters]
+  (if (seq chapters)
+    (for [chapter (map #(xt/entity db %) chapters)]
+      [:div
+       [:a.text-blue-500.hover:text-blue-800 {:href (str "work/" (:xt/id work) "/chapter/" (:xt/id chapter))}
+        (:chapter/title chapter)]
+       " | "
+       [:span.text-gray-600 (biff/format-date (:chapter/created-at chapter) "d MMM H:mm aa")]])
+    [:div "This work has no chapters."]))
 
 (defn home [sys]
   (ui/page
@@ -71,6 +84,25 @@
    [:.h-3]
    (works-list (:biff/db sys) (get-all-works sys))))
 
+(defn work [{:keys [biff/db work] :as sys}]
+  (ui/page
+   {}
+   (let [{:work/keys [title owner blurb chapters]} work]
+    [:div
+     [:div title]
+     [:div (str "By: " (:author/pen-name (uid->author db owner)))]
+     [:.h-3]
+     [:div blurb]
+     [:.h-3]
+     [:div (chapters-list db work chapters)]])))
+
+
+
+
+
+
 (def features
   {:routes [""
-            ["/" {:get home}]]})
+            ["/" {:get home}]
+            ["/work/:work-id" {:middleware [wrap-work]}
+             ["" {:get work}]]]})
