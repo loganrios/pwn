@@ -4,7 +4,8 @@
                                             wrap-chapter]]
             [pwn.ui :as ui]
             [pwn.util :as util :refer [uid->author]]
-            [xtdb.api :as xt]))
+            [xtdb.api :as xt]
+            [clojure.string :as str]))
 
 (defn recaptcha-disclosure [{:keys [link-class]}]
   [:span "This site is protected by reCAPTCHA and the Google "
@@ -70,7 +71,7 @@
   (if (seq chapters)
     (for [chapter (map #(xt/entity db %) chapters)]
       [:div
-       [:a.text-blue-500.hover:text-blue-800 {:href (str "work/" (:xt/id work) "/chapter/" (:xt/id chapter))}
+       [:a.text-blue-500.hover:text-blue-800 {:href (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter))}
         (:chapter/title chapter)]
        " | "
        [:span.text-gray-600 (biff/format-date (:chapter/created-at chapter) "d MMM H:mm aa")]])
@@ -84,6 +85,16 @@
    [:.h-3]
    (works-list (:biff/db sys) (get-all-works sys))))
 
+(defn get-chapter-index [chapters-list chapter-id]
+ (first (keep-indexed (fn [index item] (when (#(= chapter-id %) item) index))
+                     chapters-list)))
+
+(defn get-prev-ch-id [chapters-list current-ch-index]
+  (get chapters-list (- current-ch-index 1)))
+
+(defn get-next-ch-id [chapters-list current-ch-index]
+  (get chapters-list (+ current-ch-index 1)))
+
 (defn work [{:keys [biff/db work] :as sys}]
   (ui/page
    {}
@@ -96,8 +107,29 @@
      [:.h-3]
      [:div (chapters-list db work chapters)]])))
 
-
-
+(defn chapter [{:keys [biff/db work chapter]}]
+  (ui/page
+   {}
+   (let [{:chapter/keys [title content]} chapter
+         {:work/keys [chapters]} work
+         current-ch-index (get-chapter-index chapters (:xt/id chapter))
+         previous-chapter-id (get-prev-ch-id (:work/chapters work) current-ch-index)
+         next-chapter-id (get-next-ch-id (:work/chapters work) current-ch-index)]
+    [:div
+     [:div title]
+     [:.h-3]
+     [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" previous-chapter-id)}
+      "Previous"]
+     [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" next-chapter-id)}
+      "Next"]
+     [:div
+      (for [para (str/split content #"\n\n")]
+        [:div para
+         [:.h-3]])]
+     [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" previous-chapter-id)}
+      "Previous"]
+     [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" next-chapter-id)}
+      "Next"]])))
 
 
 
@@ -105,4 +137,6 @@
   {:routes [""
             ["/" {:get home}]
             ["/work/:work-id" {:middleware [wrap-work]}
-             ["" {:get work}]]]})
+             ["" {:get work}]
+             ["/chapter/:chapter-id" {:middleware [wrap-chapter]}
+              ["" {:get chapter}]]]]})
