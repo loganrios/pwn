@@ -3,7 +3,8 @@
             [pwn.middleware :as mid :refer [wrap-work
                                             wrap-chapter]]
             [pwn.ui :as ui]
-            [pwn.util :as util :refer [uid->author]]
+            [pwn.util :as util :refer [uid->author
+                                       uid->works]]
             [rum.core :as rum]
             [xtdb.api :as xt]
             [ring.adapter.jetty9 :as jetty]
@@ -51,11 +52,6 @@
      :placeholder "Pen Name"}]
    [:button.btn {:type "submit"} "Create"]))
 
-(defn uid->works [db user-id]
-  (q db '{:find [(pull works [*])]
-          :where [[works :work/owner uid]]
-          :in [uid]}
-     user-id))
 
 (defn works-list [works]
   (if (seq works)

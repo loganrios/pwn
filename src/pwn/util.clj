@@ -28,3 +28,9 @@
            :in [uid]}
          user-id)
       (ffirst)))
+
+(defn uid->works [db user-id]
+  (q db '{:find [(pull works [*])]
+          :where [[works :work/owner uid]]
+          :in [uid]}
+     user-id))

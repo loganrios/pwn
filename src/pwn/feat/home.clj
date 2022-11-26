@@ -1,9 +1,11 @@
 (ns pwn.feat.home
   (:require [com.biffweb :as biff :refer [q]]
             [pwn.middleware :as mid :refer [wrap-work
-                                            wrap-chapter]]
+                                            wrap-chapter
+                                            wrap-author]]
             [pwn.ui :as ui]
-            [pwn.util :as util :refer [uid->author]]
+            [pwn.util :as util :refer [uid->author
+                                       uid->works]]
             [xtdb.api :as xt]
             [clojure.string :as str]))
 
@@ -64,7 +66,10 @@
     [:div
      [:a.text-blue-500.hover:text-blue-800 {:href (str "/work/" (:xt/id work))}
       (:work/title work)]
-     " | By: " (:author/pen-name (uid->author db (:work/owner work)))
+     " | By: "
+     (let [{:keys [xt/id author/pen-name]} (uid->author db (:work/owner work))]
+      [:a.text-blue-500.hover:text-blue-800 {:href (str "/author/" id)}
+       pen-name])
      [:.h-3]]))
 
 (defn chapters-list [db work chapters]
@@ -139,11 +144,28 @@
       [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" next-chapter-id)}
        "Next"])])))
 
+(defn author-works-list [works]
+ (if (seq works)
+   [:div
+    [:div "Works:"
+     (for [work works]
+       (let [work-map (first work)]
+         [:div
+          [:a.text-blue-500.hover:text-blue-800 {:href (str "/work/" (:xt/id work-map))}
+           (:work/title work-map)]]))]]
+   [:div "This author has no works."]))
 
+(defn author [{:keys [biff/db author]}]
+  (ui/page
+   {}
+   [:div (:author/pen-name author)]
+   [:div (author-works-list (uid->works db (:author/user author)))]))
 
 (def features
   {:routes [""
             ["/" {:get home}]
+            ["/author/:author-id" {:middleware [wrap-author]}
+             ["" {:get author}]]
             ["/work/:work-id" {:middleware [wrap-work]}
              ["" {:get work}]
              ["/chapter/:chapter-id" {:middleware [wrap-chapter]}

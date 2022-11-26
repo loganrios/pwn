@@ -27,3 +27,9 @@
     (if-some [chapter (xt/entity db (parse-uuid (:chapter-id path-params)))]
       (handler (assoc req :chapter chapter))
       (handler req))))
+
+(defn wrap-author [handler]
+  (fn [{:keys [biff/db path-params] :as req}]
+    (if-some [author (xt/entity db (parse-uuid (:author-id path-params)))]
+      (handler (assoc req :author author))
+      (handler req))))
