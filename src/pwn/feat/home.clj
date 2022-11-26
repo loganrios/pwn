@@ -118,18 +118,26 @@
     [:div
      [:div title]
      [:.h-3]
-     [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" previous-chapter-id)}
-      "Previous"]
-     [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" next-chapter-id)}
-      "Next"]
+     (when (not (nil? previous-chapter-id))
+      [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" previous-chapter-id)}
+       "Previous"])
+     [:a.btn {:href (str "/work/" (:xt/id work))}
+      "Work Home"]
+     (when (not (nil? next-chapter-id))
+      [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" next-chapter-id)}
+       "Next"])
      [:div
       (for [para (str/split content #"\n\n")]
         [:div para
          [:.h-3]])]
-     [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" previous-chapter-id)}
-      "Previous"]
-     [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" next-chapter-id)}
-      "Next"]])))
+     (when (not (nil? previous-chapter-id))
+      [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" previous-chapter-id)}
+       "Previous"])
+     [:a.btn {:href (str "/work/" (:xt/id work))}
+      "Work Home"]
+     (when (not (nil? next-chapter-id))
+      [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" next-chapter-id)}
+       "Next"])])))
 
 
 
