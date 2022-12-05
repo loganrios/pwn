@@ -172,12 +172,19 @@
   [:.h-1]
   [:button.btn {:type "submit"} "Update blurb"]))
 
-(defn update-title [{:keys [work params] :as req}]
+(defn update-work-title [{:keys [work params] :as req}]
   (biff/submit-tx req
                   [[::xt/put
                     (assoc work :work/title (:title params))]])
   {:status 303
    :headers {"Location" (str "/app/work/" (:xt/id work))}})
+
+(defn update-chapter-title [{:keys [work chapter params] :as req}]
+  (biff/submit-tx req
+                  [[::xt/put
+                    (assoc chapter :chapter/title (:title params))]])
+  {:status 303
+   :headers {"Location" (str "/app/work/" (:xt/id work) "/chapter/" (:xt/id chapter))}})
 
 (def quill-js (slurp "resources/quill.js"))
 
@@ -201,7 +208,7 @@
   {:status 303
    :headers {"Location" (str "/app/work/" (:xt/id work) "/chapter/" (:xt/id chapter))}})
 
-(defn title-form [work]
+(defn work-title-form [work]
   (biff/form
    {:action (str "/app/work/" (:xt/id work) "/title")}
    (let [{:keys [work/title]} work]
@@ -211,13 +218,25 @@
        :value title
        :required true}])
    [:h-1]
-   [:button.btn {:type "submit"} "Update title"]))
+   [:button.btn {:type "submit"} "Update Title"]))
+
+(defn chapter-title-form [work chapter]
+  (biff/form
+   {:action (str "/app/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/title")}
+   (let [{:keys [chapter/title]} chapter]
+     [:input#title
+      {:name "title"
+       :type "text"
+       :value title
+       :required true}])
+   [:h-1]
+   [:button.btn {:type "submit"} "Update Chapter"]))
 
 (defn work [{:keys [biff/db work owner]}]
   (ui/page
    {}
    [:div
-    (title-form work)
+    (work-title-form work)
     [:.text-sm "Owned by: " owner]]
    [:.h-3]
    (blurb-form work)
@@ -230,7 +249,7 @@
   (ui/page
    {}
    [:div
-    (str "Chapter ID: " (:xt/id chapter))
+    (chapter-title-form work chapter)
     [:.h-3]
     (chapter-content-form work chapter)]))
 
@@ -243,9 +262,10 @@
              ["" {:get work}]
              ["/delete" {:post delete-work}]
              ["/blurb" {:post update-blurb}]
-             ["/title" {:post update-title}]
+             ["/title" {:post update-work-title}]
              ["/chapter" {:post new-chapter}]
              ["/chapter/:chapter-id" {:middleware [wrap-chapter]}
               ["" {:get chapter}]
               ["/delete" {:post delete-chapter}]
-              ["/content" {:post update-content}]]]]})
+              ["/content" {:post update-content}]
+              ["/title" {:post update-chapter-title}]]]]})
