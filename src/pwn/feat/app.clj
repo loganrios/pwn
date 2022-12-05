@@ -29,7 +29,7 @@
    [:input#title
     {:name "title"
      :type "text"
-     :placeholder "Work title"}]
+     :placeholder "Work Title"}]
    [:button.btn {:type "submit"} "Create"]))
 
 (defn new-chapter-form [work]
@@ -39,7 +39,7 @@
    [:input#title
     {:name "title"
      :type "text"
-     :placeholder "Chapter title"}]
+     :placeholder "Chapter Title"}]
    [:button.btn {:type "submit"} "Create"]))
 
 (defn become-author-form []
@@ -170,7 +170,7 @@
       :placeholder (when (not (seq blurb)) "Your blurb here.")}
      blurb])
   [:.h-1]
-  [:button.btn {:type "submit"} "Update blurb"]))
+  [:button.btn {:type "submit"} "Update Blurb"]))
 
 (defn update-work-title [{:keys [work params] :as req}]
   (biff/submit-tx req
@@ -235,6 +235,9 @@
 (defn work [{:keys [biff/db work owner]}]
   (ui/page
    {}
+   [:a.btn {:href (str "/app")}
+    "Back to Author Dashboard"]
+   [:.h-3]
    [:div
     (work-title-form work)
     [:.text-sm "Owned by: " owner]]
@@ -248,10 +251,14 @@
 (defn chapter [{:keys [biff/db work chapter]}]
   (ui/page
    {}
+   [:a.btn {:href (str "/app/work/" (:xt/id work))}
+    "Back to Work Dashboard"]
+   [:.h-3]
    [:div
     (chapter-title-form work chapter)
     [:.h-3]
     (chapter-content-form work chapter)]))
+
 
 (def features
   {:routes ["/app" {:middleware [mid/wrap-signed-in]}
