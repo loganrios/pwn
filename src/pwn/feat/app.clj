@@ -179,23 +179,25 @@
   {:status 303
    :headers {"Location" (str "/app/work/" (:xt/id work))}})
 
+(def quill-js (slurp "resources/quill.js"))
+
 (defn chapter-content-form [work chapter]
   (biff/form
    {:action (str "/app/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/content")}
    (let [{:keys [chapter/content]} chapter]
-     [:textarea#content
-      {:class "resize rounded-md"
-       :name "content"
-       :wrap "soft"
-       :placeholder (when (not (seq content)) "Start writing here...")}
-      content])
-   [:h-1]
-   [:button.btn {:type "submit"} "Update Content"]))
+    [:div
+     [:h-1]
+     [:link {:href "https://cdn.quilljs.com/1.3.6/quill.snow.css" :rel "stylesheet"}]
+     [:div#editor (biff/unsafe content)]
+     [:input {:name "chapter-content" :type "hidden"}]
+     [:script {:src "https://cdn.quilljs.com/1.3.6/quill.js"}]
+     [:script (biff/unsafe quill-js)]
+     [:button.btn {:type "submit"} "Update Content"]])))
 
 (defn update-content [{:keys [work chapter params] :as req}]
   (biff/submit-tx req
                   [[::xt/put
-                    (assoc chapter :chapter/content (:content params))]])
+                    (assoc chapter :chapter/content (:chapter-content params))]])
   {:status 303
    :headers {"Location" (str "/app/work/" (:xt/id work) "/chapter/" (:xt/id chapter))}})
 

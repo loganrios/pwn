@@ -132,9 +132,7 @@
       [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" next-chapter-id)}
        "Next"])
      [:div
-      (for [para (str/split content #"\n\n")]
-        [:div para
-         [:.h-3]])]
+      (biff/unsafe content)]
      (when (not (nil? previous-chapter-id))
       [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" previous-chapter-id)}
        "Previous"])
