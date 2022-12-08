@@ -54,7 +54,7 @@
              :async "async"
              :defer "defer"}]
    [:script (biff/unsafe
-             (str "function onSubscribe(token) { document.getElementById('signin-form').submit()}))]]); }"))]])
+             (str "function onSubscribe(token) { document.getElementById('signin-form').submit()}"))]])
 
 (defn get-all-works [{:keys [biff/db] :as req}]
   (q db
