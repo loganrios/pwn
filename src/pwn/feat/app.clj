@@ -52,7 +52,6 @@
      :placeholder "Pen Name"}]
    [:button.btn {:type "submit"} "Create"]))
 
-
 (defn works-list [works]
   (if (seq works)
     [:div
@@ -84,23 +83,6 @@
          :class "inline"}
         [:button.text-blue-500.hover:text-blue-800 {:type "submit"} "Delete"])])
     [:div "You have no chapters."]))
-
-(defn app [{:keys [session biff/db] :as req}]
-  (let [user-id (:uid session)
-        {:user/keys [email]} (xt/entity db user-id)]
-    (ui/page
-     {}
-     nil
-     (auth-info email)
-     [:.h-3]
-     (if-some [author (uid->author db user-id)]
-       [:div
-        (author-info author)
-        [:.h-3]
-        (new-work-form)
-        (let [works (uid->works db user-id)]
-          (works-list works))]
-       (become-author-form)))))
 
 (defn new-author [{:keys [params session] :as req}]
   (let [author-id (random-uuid)]
@@ -142,49 +124,15 @@
   {:status 303
    :headers {"Location" "/app"}})
 
-(defn delete-chapter [{:keys [biff/db work chapter] :as req}]
-  (biff/submit-tx req
-                  [{:db/op :delete
-                    :xt/id (:xt/id chapter)}
-                   [::xt/put
-                    (assoc work :work/chapters (remove #(= (:xt/id chapter) %) (:work/chapters work)))]])
-  {:status 303
-   :headers {"Location" (str "/app/work/" (:xt/id work))}})
-
-
-(defn update-blurb [{:keys [work params] :as req}]
+(defn update-work [{:keys [work params] :as req}]
   (biff/submit-tx req
                   [[::xt/put
-                    (assoc work :work/blurb (:blurb params))]])
+                    (assoc work
+                           :work/title (:title params)
+                           :work/blurb (:blurb params))]])
+
   {:status 303
    :headers {"Location" (str "/app/work/" (:xt/id work))}})
-
-(defn blurb-form [work]
- (biff/form
-  {:action (str "/app/work/" (:xt/id work) "/blurb")}
-  (let [{:keys [work/blurb]} work]
-    [:textarea#blurb
-     {:class "resize rounded-md"
-      :name "blurb"
-      :wrap "soft"
-      :placeholder (when (not (seq blurb)) "Your blurb here.")}
-     blurb])
-  [:.h-1]
-  [:button.btn {:type "submit"} "Update Blurb"]))
-
-(defn update-work-title [{:keys [work params] :as req}]
-  (biff/submit-tx req
-                  [[::xt/put
-                    (assoc work :work/title (:title params))]])
-  {:status 303
-   :headers {"Location" (str "/app/work/" (:xt/id work))}})
-
-(defn update-chapter-title [{:keys [work chapter params] :as req}]
-  (biff/submit-tx req
-                  [[::xt/put
-                    (assoc chapter :chapter/title (:title params))]])
-  {:status 303
-   :headers {"Location" (str "/app/work/" (:xt/id work) "/chapter/" (:xt/id chapter))}})
 
 (def quill-js (slurp "resources/quill.js"))
 
@@ -215,17 +163,56 @@
   {:status 303
    :headers {"Location" (str "/app/work/" (:xt/id work) "/chapter/" (:xt/id chapter))}})
 
-(defn work-title-form [work]
+(defn delete-chapter [{:keys [biff/db work chapter] :as req}]
+  (biff/submit-tx req
+                  [{:db/op :delete
+                    :xt/id (:xt/id chapter)}
+                   [::xt/put
+                    (assoc work :work/chapters (remove #(= (:xt/id chapter) %) (:work/chapters work)))]])
+  {:status 303
+   :headers {"Location" (str "/app/work/" (:xt/id work))}})
+
+(defn work-content-form [work]
   (biff/form
-   {:action (str "/app/work/" (:xt/id work) "/title")}
-   (let [{:keys [work/title]} work]
-     [:input#title
-      {:name "title"
-       :type "text"
-       :value title
-       :required true}])
-   [:h-1]
-   [:button.btn {:type "submit"} "Update Title"]))
+   {:action (str "/app/work/" (:xt/id work))}
+   (let [{:work/keys [title blurb]} work]
+     [:div
+      [:p "Work Title: "]
+      [:input#title
+       {:name "title"
+        :type "text"
+        :value title
+        :required true}]
+      [:.h-1]
+      [:p "Blurb: "]
+      [:textarea#blurb
+       {:class "resize rounded-md"
+        :name "blurb"
+        :wrap "soft"
+        :placeholder (when (not (seq blurb)) "Your blurb here.")}
+       blurb]])
+   [:h-3]
+   [:button.btn {:type "submit"} "Update Work Info"]))
+
+(defn app [{:keys [session biff/db] :as req}]
+  (let [user-id (:uid session)
+        {:user/keys [email]} (xt/entity db user-id)]
+    (ui/page
+     {}
+     nil
+     (auth-info email)
+     [:.h-3]
+     (if-some [author (uid->author db user-id)]
+       [:div
+        [:a.btn {:href (str "/")}
+         "Home"]
+        [:.h-3]
+        (author-info author)
+        [:.h-3]
+        (new-work-form)
+        (let [works (uid->works db user-id)]
+          (works-list works))]
+       (become-author-form)))))
 
 (defn work [{:keys [biff/db work owner]}]
   (ui/page
@@ -234,10 +221,7 @@
     "Back to Author Dashboard"]
    [:.h-3]
    [:div
-    (work-title-form work)
-    [:.text-sm "Owned by: " owner]]
-   [:.h-3]
-   (blurb-form work)
+    (work-content-form work)]
    [:.h-3]
    (new-chapter-form work)
    [:div
@@ -259,10 +243,9 @@
             ["/author" {:post new-author}]
             ["/work" {:post new-work}]
             ["/work/:work-id" {:middleware [wrap-work]}
-             ["" {:get work}]
+             ["" {:get work
+                  :post update-work}]
              ["/delete" {:post delete-work}]
-             ["/blurb" {:post update-blurb}]
-             ["/title" {:post update-work-title}]
              ["/chapter" {:post new-chapter}]
              ["/chapter/:chapter-id" {:middleware [wrap-chapter]}
               ["" {:get chapter

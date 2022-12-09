@@ -105,6 +105,9 @@
    {}
    (let [{:work/keys [title owner blurb chapters]} work]
     [:div
+     [:a.btn {:href (str "/")}
+      "Home"]
+     [:.h-3]
      [:div title]
      [:div (str "By: " (:author/pen-name (uid->author db owner)))]
      [:.h-3]
@@ -120,28 +123,41 @@
          current-ch-index (get-chapter-index chapters (:xt/id chapter))
          previous-chapter-id (get-prev-ch-id (:work/chapters work) current-ch-index)
          next-chapter-id (get-next-ch-id (:work/chapters work) current-ch-index)]
-    [:div
-     [:div title]
-     [:.h-3]
-     (when (not (nil? previous-chapter-id))
-      [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" previous-chapter-id)}
-       "Previous"])
-     [:a.btn {:href (str "/work/" (:xt/id work))}
-      "Work Home"]
-     (when (not (nil? next-chapter-id))
-      [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" next-chapter-id)}
-       "Next"])
+    (if (seq content)
      [:div
-      (if (seq content) (biff/unsafe content)
-          "This chapter has no content.")]
-     (when (not (nil? previous-chapter-id))
-      [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" previous-chapter-id)}
-       "Previous"])
-     [:a.btn {:href (str "/work/" (:xt/id work))}
-      "Work Home"]
-     (when (not (nil? next-chapter-id))
-      [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" next-chapter-id)}
-       "Next"])])))
+      [:div title]
+      [:.h-3]
+      (when (not (nil? previous-chapter-id))
+       [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" previous-chapter-id)}
+        "Previous"])
+      [:a.btn {:href (str "/work/" (:xt/id work))}
+       "Work Home"]
+      (when (not (nil? next-chapter-id))
+       [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" next-chapter-id)}
+        "Next"])
+      [:.h-3]
+      [:div
+       (biff/unsafe content)]
+      [:.h-3]
+      (when (not (nil? previous-chapter-id))
+       [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" previous-chapter-id)}
+        "Previous"])
+      [:a.btn {:href (str "/work/" (:xt/id work))}
+       "Work Home"]
+      (when (not (nil? next-chapter-id))
+       [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" next-chapter-id)}
+        "Next"])]
+     [:div
+      (when (not (nil? previous-chapter-id))
+       [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" previous-chapter-id)}
+        "Previous"])
+      [:a.btn {:href (str "/work/" (:xt/id work))}
+       "Work Home"]
+      (when (not (nil? next-chapter-id))
+       [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" next-chapter-id)}
+        "Next"])
+      [:.h-3]
+      "This chapter has no content."]))))
 
 (defn author-works-list [works]
  (if (seq works)
