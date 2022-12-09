@@ -190,21 +190,28 @@
 
 (defn chapter-content-form [work chapter]
   (biff/form
-   {:action (str "/app/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/content")}
-   (let [{:keys [chapter/content]} chapter]
+   {:action (str "/app/work/" (:xt/id work) "/chapter/" (:xt/id chapter))}
+   (let [{:chapter/keys [content title]} chapter]
     [:div
-     [:h-1]
+     [:.h-1]
+     [:input#chapter-title
+      {:name "chapter-title"
+       :type "text"
+       :value title
+       :required true}]
+     [:.h-3]
      [:link {:href "https://cdn.quilljs.com/1.3.6/quill.snow.css" :rel "stylesheet"}]
-     [:div#editor (biff/unsafe content)]
+     [:div#editor (when (seq content) (biff/unsafe content))]
      [:input {:name "chapter-content" :type "hidden"}]
-     [:script {:src "https://cdn.quilljs.com/1.3.6/quill.js"}]
      [:script (biff/unsafe quill-js)]
      [:button.btn {:type "submit"} "Update Content"]])))
 
-(defn update-content [{:keys [work chapter params] :as req}]
+(defn update-chapter [{:keys [work chapter params] :as req}]
   (biff/submit-tx req
                   [[::xt/put
-                    (assoc chapter :chapter/content (:chapter-content params))]])
+                    (assoc chapter
+                           :chapter/content (:chapter-content params)
+                           :chapter/title (:chapter-title params))]])
   {:status 303
    :headers {"Location" (str "/app/work/" (:xt/id work) "/chapter/" (:xt/id chapter))}})
 
@@ -219,18 +226,6 @@
        :required true}])
    [:h-1]
    [:button.btn {:type "submit"} "Update Title"]))
-
-(defn chapter-title-form [work chapter]
-  (biff/form
-   {:action (str "/app/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/title")}
-   (let [{:keys [chapter/title]} chapter]
-     [:input#title
-      {:name "title"
-       :type "text"
-       :value title
-       :required true}])
-   [:h-1]
-   [:button.btn {:type "submit"} "Update Chapter"]))
 
 (defn work [{:keys [biff/db work owner]}]
   (ui/page
@@ -250,15 +245,13 @@
 
 (defn chapter [{:keys [biff/db work chapter]}]
   (ui/page
-   {}
+   {:base/head
+     [[:script {:src "https://cdn.quilljs.com/1.3.6/quill.js"}]]}
    [:a.btn {:href (str "/app/work/" (:xt/id work))}
     "Back to Work Dashboard"]
    [:.h-3]
    [:div
-    (chapter-title-form work chapter)
-    [:.h-3]
     (chapter-content-form work chapter)]))
-
 
 (def features
   {:routes ["/app" {:middleware [mid/wrap-signed-in]}
@@ -272,7 +265,6 @@
              ["/title" {:post update-work-title}]
              ["/chapter" {:post new-chapter}]
              ["/chapter/:chapter-id" {:middleware [wrap-chapter]}
-              ["" {:get chapter}]
-              ["/delete" {:post delete-chapter}]
-              ["/content" {:post update-content}]
-              ["/title" {:post update-chapter-title}]]]]})
+              ["" {:get chapter
+                   :post update-chapter}]
+              ["/delete" {:post delete-chapter}]]]]})

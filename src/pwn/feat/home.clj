@@ -132,7 +132,8 @@
       [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" next-chapter-id)}
        "Next"])
      [:div
-      (biff/unsafe content)]
+      (if (seq content) (biff/unsafe content)
+          "This chapter has no content.")]
      (when (not (nil? previous-chapter-id))
       [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" previous-chapter-id)}
        "Previous"])
