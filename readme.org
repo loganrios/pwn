@@ -10,22 +10,9 @@ For development, PWN requires Java, Clojure, and Babashka to be installed on the
 ;; vim: ft=clojure
 {:prod {:biff.xtdb/dir "storage/xtdb"
         :biff.xtdb/topology :standalone
-        ;; Standalone topology in production isn't recommended for anything
-        ;; serious. You can uncomment the following to use managed postgres
-        ;; instead.
-        ;; :biff.xtdb/topology :jdbc
-        ;; :biff.xtdb.jdbc/jdbcUrl "postgresql://user:password@host:port/dbname?sslmode=require"
         :biff/base-url "https://example.com"
-        ;; Postmark is used to send email sign-in links. Create an account at
-        ;; https://postmarkapp.com
         :postmark/api-key nil
-        ;; Change to the address of your sending identity. Set a reply-to
-        ;; address on your sending identity if you want to receive replies and
-        ;; your from address isn't configured for receiving.
         :postmark/from "hello@example.com"
-        ;; Recaptcha is used to protect your sign-in page. Go to
-        ;; https://www.google.com/recaptcha/about/ and add a site. Select v2
-        ;; invisible. Add localhost to your list of allowed domains.
         :recaptcha/site-key nil
         :recaptcha/secret-key nil
         :biff.middleware/cookie-secret <your-cookie-secret>
@@ -37,9 +24,7 @@ For development, PWN requires Java, Clojure, and Babashka to be installed on the
        :biff/base-url "http://localhost:8080"
        :biff.xtdb/topology :standalone
        :biff.middleware/secure false}
- :tasks {;; Set this if the auto-detection doesn't work
-         ;; Possible values: macos-x64, macos-arm64, linux-x64, linux-arm64
-         :biff.tasks/tailwind-build nil
+ :tasks {:biff.tasks/tailwind-build nil
          :biff.tasks/main-ns pwn
          :biff.tasks/soft-deploy-fn pwn/on-save
          :biff.tasks/deploy-from "master"
@@ -53,8 +38,57 @@ In a shell, you can then run =bb dev= in the project root to get started. The ap
 
 To connect to the running REPL with Emacs, run =M-x cider-connect-clj= (or =SPC m c= for Doom users), and select =localhost= followed by =pwn:7888=.
 
-*** Seed the DB
-You can quickly populate the database with a set of random-ish sample data by opening up =src/pwn/seed.clj=, evaluating the entire buffer, then evaluating ~(seed-all)~ via the REPL. Note that you'll need a =resources/words-source.txt= for this to work--I personally just use a plain text book off of Project Gutenberg.
+** Running in Production
+We use Alpine Linux for our production systems, but these steps could probably be easily adapted for any mainstream Linux distribution.
+
+Note: pretty much all of this is adapted from Biff's original =setup.sh= file. I haven't yet figured out how to do the dev-in-prod thing that requires =trenchman= and all the systemd stuff.
+
+#+begin_src sh
+DOMAIN=<your-domain-here>
+apk update && apk upgrade
+apk install tmux caddy bash rlwrap openjdk17-jre-headless rsync git
+
+CLJ_VERSION=1.11.1.1200
+curl -O https://download.clojure.org/install/linux-install-$CLJ_VERSION.sh
+chmod +x linux-install-$CLJ_VERSION.sh
+./linux-install-$CLJ_VERSION.sh
+rm linux-install-$CLJ_VERSION.sh
+
+BB_VERSION=1.0.168
+curl -LO https://github.com/babashka/babashka/releases/download/v$BB_VERSION/babashka-$BB_VERSION-linux-amd64-static.tar.gz
+tar -xf babashka-$BB_VERSION-linux-amd64-static.tar.gz
+rm babashka-$BB_VERSION-linux-amd64-static.tar.gz
+mv bb /usr/local/bin/
+
+useradd -m app
+mkdir -m 700 -p /home/app/.ssh
+cp /root/.ssh/authorized_keys /home/app/.ssh
+chown -R app:app /home/app/.ssh
+
+su pwn
+cd ~
+cat > Caddyfile << EOD
+$DOMAIN {
+        reverse_proxy localhost:8080
+}
+EOD
+
+# quit out from app user
+exit
+
+# close ssh connection
+exit
+
+rsync -avz pwn app@$DOMAIN:~/
+ssh app@$DOMAIN
+cd pwn
+
+tmux
+$(bb run-cmd)
+# C-b d
+caddy start
+exit
+#+end_src
 
 * Contributing
 As this project is in pre-release, we are keeping development in-house at this time. Please look forward to future contributing guidelines as the project matures.
