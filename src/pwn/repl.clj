@@ -12,12 +12,6 @@
      '{:find [(pull e [*])]
        :where [[e :xt/id]]}))
 
-(defn em->uid [all-users em]
-  (->> all-users
-       (filter #(= em (:user/email %)))
-       (first)
-       (:xt/id)))
-
 (comment
 
   ;; As of writing this, calling (biff/refresh) with Conjure causes stdout to
