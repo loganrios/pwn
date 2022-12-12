@@ -14,8 +14,7 @@
        (merge #:base{:title "Project Web Novel"
                      :lang "en-US"
                      :icon "/img/glider.png"
-                     :description "The author-first platform for online fiction."
-                     :image "https://clojure.org/images/clojure-logo-120b.png"})
+                     :description "The author-first platform for online fiction."})
        (update :base/head (fn [head]
                             (concat [[:link {:rel "stylesheet" :href (css-path)}]
                                      [:script {:src "https://unpkg.com/htmx.org@1.8.4"}]
@@ -23,8 +22,16 @@
                                     head))))
    body))
 
+(def topbar
+  [:nav
+   [:div.container.flex.flex-wrap.items-center.justify-between.mx-auto
+    [:a.text-blue-500.text-xl.font-semibold {:href "/"} "Project Web Novel"]
+    [:a.text-blue-500 {:href "/app"} "Dashboard"]]
+   [:.h-5]])
+
 (defn page [opts & body]
   (base
    opts
    [:.p-3.mx-auto.max-w-screen-sm.w-full
+    topbar
     body]))
