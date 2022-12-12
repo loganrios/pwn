@@ -23,14 +23,22 @@
           [:work/owner :user/id]
           [:work/blurb {:optional true} :string]
           [:work/title :string]
-          [:work/chapters {:optional true} [:vector :chapter/id]]]
+          [:work/chapters {:optional true} [:vector :chapter/id]]
+          [:work/primary-genre {:optional true} :genre/id]
+          [:work/secondary-genre {:optional true} :genre/id]]
 
    :chapter/id :uuid
    :chapter [:map {:closed true}
              [:xt/id :chapter/id]
              [:chapter/title :string]
              [:chapter/content {:optional true} :string]
-             [:chapter/created-at inst?]]})
+             [:chapter/created-at inst?]]
 
+   :genre/id :keyword
+   :genre [:map {:closed true}
+           [:xt/id :genre/id]
+           [:genre/slug :string]
+           [:genre/description :string]
+           [:genre/display-name :string]]})
 
 (def malli-opts {:registry (malr/composite-registry malc/default-registry schema)})

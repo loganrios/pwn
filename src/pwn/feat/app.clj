@@ -52,6 +52,46 @@
      :placeholder "Pen Name"}]
    [:button.btn {:type "submit"} "Create"]))
 
+(defn create-genre-form []
+  (biff/form
+   {:action "/app/create-genre"}
+   [:div "Add a New Genre to ProjectWebNovel"]
+   [:input#genre-id
+    {:name "genre-id"
+     :type "keyword"
+     :placeholder "Genre ID (Do not include ':')"}]
+   [:.h-1]
+   [:input#slug
+    {:name "slug"
+     :type "string"
+     :placeholder "Slug"}]
+   [:.h-1]
+   [:input#description
+    {:name "description"
+     :type "string"
+     :placeholder "Description"}]
+   [:.h-1]
+   [:input#display-name
+    {:name "display-name"
+     :type "string"
+     :placeholder "User-facing Genre Name (case sensitive)"}]
+   [:button.btn {:type "submit"} "Create"]))
+
+(defn new-genre [{:keys [params] :as req}]
+    (biff/submit-tx req
+                    [{:db/doc-type :genre
+                      :xt/id (keyword (:genre-id params))
+                      :genre/slug (:slug params)
+                      :genre/description (:description params)
+                      :genre/display-name (:display-name params)}])
+  {:status 303
+   :headers {"Location" "/app"}})
+
+(defn get-all-genres [{:keys [biff/db] :as req}]
+  (q req
+     '{:find (pull genre [*])
+       :where [[genre :genre/display-name]]}))
+
 (defn works-list [works]
   (if (seq works)
     [:div
@@ -129,8 +169,9 @@
                   [[::xt/put
                     (assoc work
                            :work/title (:title params)
-                           :work/blurb (:blurb params))]])
-
+                           :work/blurb (:blurb params)
+                           :work/primary-genre (:primary-genre params)
+                           :work/secondary-genre (:secondary-genre params))]])
   {:status 303
    :headers {"Location" (str "/app/work/" (:xt/id work))}})
 
@@ -172,10 +213,10 @@
   {:status 303
    :headers {"Location" (str "/app/work/" (:xt/id work))}})
 
-(defn work-content-form [work]
+(defn work-content-form [db work genre-list]
   (biff/form
    {:action (str "/app/work/" (:xt/id work))}
-   (let [{:work/keys [title blurb]} work]
+   (let [{:work/keys [title blurb primary-genre secondary-genre]} work]
      [:div
       [:p "Work Title: "]
       [:input#title
@@ -183,6 +224,38 @@
         :type "text"
         :value title
         :required true}]
+      [:.h-3]
+      [:div
+       [:.h-10.w-60.flex.flex-col.flex-grow
+        [:select
+         {:name "primary-genre"
+          :class '[text-sm
+                   cursor-pointer
+                   focus:border-blue-600
+                   focus:ring-blue-600]}
+         [:option {:selected (some? primary-genre)}
+          (:genre/display-name (xt/entity db (keyword primary-genre)))]
+         (for [genre genre-list]
+           (let [value (:xt/id genre)]
+             [:option.cursor-pointer
+              {:value value}
+              (:genre/display-name genre)]))]
+        [:.grow]]
+       [:.h-10.w-60.flex.flex-col.flex-grow
+        [:select
+         {:name "secondary-genre"
+          :class '[text-sm
+                   cursor-pointer
+                   focus:border-blue-600
+                   focus:ring-blue-600]}
+         [:option {:selected (some? secondary-genre)}
+          (:genre/display-name (xt/entity db (keyword secondary-genre)))]
+         (for [genre genre-list]
+           (let [value (:xt/id genre)]
+             [:option.cursor-pointer
+              {:value value}
+              (:genre/display-name genre)]))]
+        [:.grow]]]
       [:.h-1]
       [:p "Blurb: "]
       [:textarea#blurb
@@ -211,7 +284,9 @@
         [:.h-3]
         (new-work-form)
         (let [works (uid->works db user-id)]
-          (works-list works))]
+          (works-list works))
+        [:.h-5]
+        (create-genre-form)]
        (become-author-form)))))
 
 (defn work [{:keys [biff/db work owner]}]
@@ -221,9 +296,10 @@
     "Back to Author Dashboard"]
    [:.h-3]
    [:div
-    (work-content-form work)]
+    (work-content-form db work (get-all-genres db))]
    [:.h-3]
    (new-chapter-form work)
+   [:.h-3]
    [:div
     (chapters-list db work (:work/chapters work))]))
 
@@ -240,6 +316,7 @@
 (def features
   {:routes ["/app" {:middleware [mid/wrap-signed-in]}
             ["" {:get app}]
+            ["/create-genre" {:post new-genre}]
             ["/author" {:post new-author}]
             ["/work" {:post new-work}]
             ["/work/:work-id" {:middleware [wrap-work]}
