@@ -64,6 +64,25 @@
      '{:find (pull work [*])
        :where [[work :work/title]]}))
 
+(defn get-works-by-primary-genre [db genre]
+  (q db
+     '{:find [works]
+       :where [[works :work/primary-genre genre]]
+       :in [genre]}
+     genre))
+
+(defn get-works-by-secondary-genre [db genre]
+  (q db
+     '{:find [works]
+       :where [[works :work/secondary-genre genre]]
+       :in [genre]}
+     genre))
+
+(defn get-works-by-genre [db genre]
+  (let [primary (get-works-by-primary-genre db genre)
+        secondary (get-works-by-secondary-genre db genre)]
+    (map first (sort-by val > (frequencies (concat primary secondary))))))
+
 (defn works-list [db works]
   (for [work works]
    (let [{:work/keys [owner primary-genre secondary-genre blurb]} work]
@@ -202,18 +221,43 @@
 (defn genre-home [{:keys [biff/db]}]
   (ui/page
    {}
-   [:div]
-   [:div "Choose a Genre: "]
-   [:.h-1]
-   [:div
-    (for [genre (get-all-genres db)]
-      [:div [:a.text-blue-500.hover:text-blue-800 {:href (str "/genre/" (:genre/slug genre))}
-             (:genre/display-name genre)]])]))
+   (let [genre-list (get-all-genres db)]
+     [:div
+      (if (seq genre-list)
+        [:div
+          [:div "Choose a Genre: "]
+          [:.h-1]
+          [:div
+           (for [genre genre-list]
+             [:div [:a.text-blue-500.hover:text-blue-800 {:href (str "/genre/" (:genre/slug genre))}
+                    (:genre/display-name genre)]])]]
+        [:div "There are currently no genres to choose from."])])))
 
-(defn genre [{:keys [biff/db genre]}]
+(defn genre-by-id [{:keys [biff/db genre]}]
   (ui/page
    {}
-   [:div (:xt/id genre)]))
+   (let [{:genre/keys [display-name description]} genre]
+    [:div
+     [:div (str "This is the " display-name " Page!")]
+     [:div description]
+     [:.h-3]
+     [:div
+      (let [works-list (get-works-by-genre db (name (:xt/id genre)))]
+        (for [work-id works-list]
+          (let [work (xt/entity db (first work-id))
+                {:work/keys [title owner blurb primary-genre secondary-genre]} work]
+              [:div
+                [:a.text-blue-500.hover:text-blue-800 {:href (str "/work/" (:xt/id work))}
+                 (str title)]
+                " | By: "
+                (let [{:keys [:xt/id author/pen-name]} (uid->author db owner)]
+                  [:a.text-blue-500.hover:text-blue-800 {:href (str "/author/" id)}
+                   pen-name])
+                [:div (if (= primary-genre secondary-genre)
+                       [:div (genreid->name db primary-genre)]
+                       [:div (genreid->name db primary-genre) " " (genreid->name db secondary-genre)])]
+                [:div blurb]
+                [:.h-3]])))]])))
 
 (def features
   {:routes [""
@@ -226,4 +270,4 @@
               ["" {:get chapter}]]]
             ["/genre" {:get genre-home}]
             ["/genre/:genre-slug" {:middleware [wrap-genre]}
-             ["" {:get genre}]]]})
+             ["" {:get genre-by-id}]]]})
