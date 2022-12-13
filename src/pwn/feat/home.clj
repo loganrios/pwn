@@ -2,11 +2,13 @@
   (:require [com.biffweb :as biff :refer [q]]
             [pwn.middleware :as mid :refer [wrap-work
                                             wrap-chapter
-                                            wrap-author]]
+                                            wrap-author
+                                            wrap-genre]]
             [pwn.ui :as ui]
             [pwn.util :as util :refer [uid->author
                                        uid->works
-                                       genreid->name]]
+                                       genreid->name
+                                       get-all-genres]]
             [xtdb.api :as xt]
             [clojure.string :as str]))
 
@@ -197,6 +199,22 @@
    [:div (:author/pen-name author)]
    [:div (author-works-list db (uid->works db (:author/user author)))]))
 
+(defn genre-home [{:keys [biff/db]}]
+  (ui/page
+   {}
+   [:div]
+   [:div "Choose a Genre: "]
+   [:.h-1]
+   [:div
+    (for [genre (get-all-genres db)]
+      [:div [:a.text-blue-500.hover:text-blue-800 {:href (str "/genre/" (:genre/slug genre))}
+             (:genre/display-name genre)]])]))
+
+(defn genre [{:keys [biff/db genre]}]
+  (ui/page
+   {}
+   [:div (:xt/id genre)]))
+
 (def features
   {:routes [""
             ["/" {:get home}]
@@ -205,4 +223,7 @@
             ["/work/:work-id" {:middleware [wrap-work]}
              ["" {:get work}]
              ["/chapter/:chapter-id" {:middleware [wrap-chapter]}
-              ["" {:get chapter}]]]]})
+              ["" {:get chapter}]]]
+            ["/genre" {:get genre-home}]
+            ["/genre/:genre-slug" {:middleware [wrap-genre]}
+             ["" {:get genre}]]]})

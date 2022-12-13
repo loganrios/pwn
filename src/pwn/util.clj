@@ -38,3 +38,8 @@
 
 (defn genreid->name [db genre-id]
   (:genre/display-name (xt/entity db (keyword genre-id))))
+
+(defn get-all-genres [{:keys [biff/db] :as req}]
+  (q req
+     '{:find (pull genre [*])
+       :where [[genre :genre/display-name]]}))

@@ -4,7 +4,8 @@
                                             wrap-chapter]]
             [pwn.ui :as ui]
             [pwn.util :as util :refer [uid->author
-                                       uid->works]]
+                                       uid->works
+                                       get-all-genres]]
             [rum.core :as rum]
             [xtdb.api :as xt]
             [ring.adapter.jetty9 :as jetty]
@@ -263,11 +264,6 @@
                       :genre/display-name (:display-name params)}])
   {:status 303
    :headers {"Location" "/app"}})
-
-(defn get-all-genres [{:keys [biff/db] :as req}]
-  (q req
-     '{:find (pull genre [*])
-       :where [[genre :genre/display-name]]}))
 
 (defn app [{:keys [session biff/db] :as req}]
   (let [user-id (:uid session)

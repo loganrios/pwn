@@ -26,6 +26,7 @@
   [:nav
    [:div.container.flex.flex-wrap.items-center.justify-between.mx-auto
     [:a.text-blue-500.text-xl.font-semibold {:href "/"} "Project Web Novel"]
+    [:a.text-blue-500 {:href "/genre"} "Search By Genre"]
     [:a.text-blue-500 {:href "/app"} "Dashboard"]]
    [:.h-5]])
 
