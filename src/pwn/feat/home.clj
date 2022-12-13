@@ -112,13 +112,20 @@
 (defn work [{:keys [biff/db work] :as sys}]
   (ui/page
    {}
-   (let [{:work/keys [title owner blurb chapters]} work]
+   (let [{:work/keys [title owner blurb chapters primary-genre secondary-genre]} work]
     [:div
      [:a.btn {:href (str "/")}
       "Home"]
      [:.h-3]
-     [:div title]
-     [:div (str "By: " (:author/pen-name (uid->author db owner)))]
+     [:div
+      title
+      " | "
+      (str "By: " (:author/pen-name (uid->author db owner)))]
+     [:.h-1]
+     [:div
+      (genreid->name db primary-genre)
+      " "
+      (genreid->name db secondary-genre)]
      [:.h-3]
      [:div blurb]
      [:.h-3]
@@ -177,10 +184,11 @@
          [:div
           [:a.text-blue-500.hover:text-blue-800 {:href (str "/work/" (:xt/id work-map))}
            (:work/title work-map)]
-          " "
-          (genreid->name db (:work/primary-genre work-map))
-          " "
-          (genreid->name db (:work/secondary-genre work-map))]))]]
+          [:div
+           (genreid->name db (:work/primary-genre work-map))
+           " "
+           (genreid->name db (:work/secondary-genre work-map))]
+          [:div (:work/blurb work-map)]]))]]
    [:div "This author has no works."]))
 
 (defn author [{:keys [biff/db author]}]
