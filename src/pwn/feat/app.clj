@@ -77,21 +77,6 @@
      :placeholder "User-facing Genre Name (case sensitive)"}]
    [:button.btn {:type "submit"} "Create"]))
 
-(defn new-genre [{:keys [params] :as req}]
-    (biff/submit-tx req
-                    [{:db/doc-type :genre
-                      :xt/id (keyword (:genre-id params))
-                      :genre/slug (:slug params)
-                      :genre/description (:description params)
-                      :genre/display-name (:display-name params)}])
-  {:status 303
-   :headers {"Location" "/app"}})
-
-(defn get-all-genres [{:keys [biff/db] :as req}]
-  (q req
-     '{:find (pull genre [*])
-       :where [[genre :genre/display-name]]}))
-
 (defn works-list [works]
   (if (seq works)
     [:div
@@ -233,12 +218,13 @@
                    cursor-pointer
                    focus:border-blue-600
                    focus:ring-blue-600]}
-         [:option {:selected (some? primary-genre)}
-          (:genre/display-name (xt/entity db (keyword primary-genre)))]
+         [:option {:value ""}
+          "Select a Primary Genre"]
          (for [genre genre-list]
            (let [value (:xt/id genre)]
              [:option.cursor-pointer
-              {:value value}
+              {:value value
+               :selected (= (keyword primary-genre) (:xt/id genre))}
               (:genre/display-name genre)]))]
         [:.grow]]
        [:.h-10.w-60.flex.flex-col.flex-grow
@@ -248,12 +234,13 @@
                    cursor-pointer
                    focus:border-blue-600
                    focus:ring-blue-600]}
-         [:option {:selected (some? secondary-genre)}
-          (:genre/display-name (xt/entity db (keyword secondary-genre)))]
+         [:option {:value ""}
+          "Select a Secondary Genre"]
          (for [genre genre-list]
            (let [value (:xt/id genre)]
              [:option.cursor-pointer
-              {:value value}
+              {:value value
+               :selected (= (keyword secondary-genre) (:xt/id genre))}
               (:genre/display-name genre)]))]
         [:.grow]]]
       [:.h-1]
@@ -266,6 +253,21 @@
        blurb]])
    [:h-3]
    [:button.btn {:type "submit"} "Update Work Info"]))
+
+(defn new-genre [{:keys [params] :as req}]
+    (biff/submit-tx req
+                    [{:db/doc-type :genre
+                      :xt/id (keyword (:genre-id params))
+                      :genre/slug (:slug params)
+                      :genre/description (:description params)
+                      :genre/display-name (:display-name params)}])
+  {:status 303
+   :headers {"Location" "/app"}})
+
+(defn get-all-genres [{:keys [biff/db] :as req}]
+  (q req
+     '{:find (pull genre [*])
+       :where [[genre :genre/display-name]]}))
 
 (defn app [{:keys [session biff/db] :as req}]
   (let [user-id (:uid session)
