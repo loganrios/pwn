@@ -2,7 +2,8 @@
   (:require [com.biffweb :as biff :refer [q]]
             [camel-snake-kebab.core :as csk]
             [camel-snake-kebab.extras :as cske]
-            [clj-http.client :as http]))
+            [clj-http.client :as http]
+            [xtdb.api :as xt]))
 
 (defn email-signin-enabled? [sys]
   (every? sys [:postmark/api-key :recaptcha/site-key :recaptcha/secret-key]))
@@ -34,3 +35,6 @@
           :where [[works :work/owner uid]]
           :in [uid]}
      user-id))
+
+(defn genreid->name [db genre-id]
+  (:genre/display-name (xt/entity db (keyword genre-id))))

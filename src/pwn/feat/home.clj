@@ -5,7 +5,8 @@
                                             wrap-author]]
             [pwn.ui :as ui]
             [pwn.util :as util :refer [uid->author
-                                       uid->works]]
+                                       uid->works
+                                       genreid->name]]
             [xtdb.api :as xt]
             [clojure.string :as str]))
 
@@ -63,14 +64,22 @@
 
 (defn works-list [db works]
   (for [work works]
+   (let [{:work/keys [owner primary-genre secondary-genre blurb]} work]
     [:div
      [:a.text-blue-500.hover:text-blue-800 {:href (str "/work/" (:xt/id work))}
       (:work/title work)]
      " | By: "
-     (let [{:keys [xt/id author/pen-name]} (uid->author db (:work/owner work))]
+     (let [{:keys [xt/id author/pen-name]} (uid->author db owner)]
       [:a.text-blue-500.hover:text-blue-800 {:href (str "/author/" id)}
        pen-name])
-     [:.h-3]]))
+     [:div
+      " "
+      (genreid->name db primary-genre)
+      " "
+      (genreid->name db secondary-genre)]
+     [:div
+      blurb]
+     [:.h-3]])))
 
 (defn chapters-list [db work chapters]
   (if (seq chapters)
@@ -159,7 +168,7 @@
       [:.h-3]
       "This chapter has no content."]))))
 
-(defn author-works-list [works]
+(defn author-works-list [db works]
  (if (seq works)
    [:div
     [:div "Works:"
@@ -167,14 +176,18 @@
        (let [work-map (first work)]
          [:div
           [:a.text-blue-500.hover:text-blue-800 {:href (str "/work/" (:xt/id work-map))}
-           (:work/title work-map)]]))]]
+           (:work/title work-map)]
+          " "
+          (genreid->name db (:work/primary-genre work-map))
+          " "
+          (genreid->name db (:work/secondary-genre work-map))]))]]
    [:div "This author has no works."]))
 
 (defn author [{:keys [biff/db author]}]
   (ui/page
    {}
    [:div (:author/pen-name author)]
-   [:div (author-works-list (uid->works db (:author/user author)))]))
+   [:div (author-works-list db (uid->works db (:author/user author)))]))
 
 (def features
   {:routes [""
