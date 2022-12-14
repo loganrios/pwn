@@ -298,9 +298,16 @@
     (let [user-id (:uid session)
           {:user/keys [followed]} (xt/entity db user-id)]
       [:div (if (seq followed)
-              (for [work-id followed]
-                [:div work-id])
+              (for [work (map #(xt/entity db %) followed)]
+                 [:div
+                  [:a.text-blue-500.hover:text-blue-800 {:href (str "/work/" (:xt/id work))}
+                   (:work/title work)]
+                  [:.h-1]
+                  (chapters-list db work (:work/chapters work))
+                  [:.h-3]])
               (str "You are not following any works."))])))
+
+
 
 (def features
   {:routes [""
