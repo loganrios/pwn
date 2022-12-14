@@ -57,6 +57,7 @@
   (biff/form
    {:action "/app/create-genre"}
    [:div "Add a New Genre to ProjectWebNovel"]
+   [:div "(genre-id and slug must match or the genre page will break.)"]
    [:input#genre-id
     {:name "genre-id"
      :type "keyword"
