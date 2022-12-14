@@ -122,6 +122,24 @@
 (defn get-next-ch-id [chapters-list current-ch-index]
   (get chapters-list (+ current-ch-index 1)))
 
+(defn follow-work [{:keys [session biff/db work] :as req}]
+  (let [user-id (:uid session)
+        user (xt/entity db user-id)]
+    (biff/submit-tx req
+                    [[::xt/put
+                      (assoc user :user/followed (conj (vec (:user/followed user)) (:xt/id work)))]]))
+  {:status 303
+   :headers {"Location" (str "/work/" (:xt/id work))}})
+
+(defn unfollow-work [{:keys [session biff/db work] :as req}]
+  (let [user-id (:uid session)
+        user (xt/entity db user-id)]
+    (biff/submit-tx req
+                    [[::xt/put
+                      (assoc user :user/followed (remove #(= (:xt/id work) %) (:user/followed user)))]]))
+  {:status 303
+   :headers {"Location" (str "/work/" (:xt/id work))}})
+
 (defn home [sys]
   (ui/page
    {:base/head (when (util/email-signin-enabled? sys)
@@ -130,16 +148,26 @@
    [:.h-3]
    (works-list (:biff/db sys) (get-all-works sys))))
 
-(defn work [{:keys [biff/db work] :as sys}]
+(defn work [{:keys [session biff/db work] :as sys}]
   (ui/page
    {}
-   (let [{:work/keys [title owner blurb chapters primary-genre secondary-genre]} work]
+   (let [user-id (:uid session)
+         user (xt/entity db user-id)
+         {:work/keys [title owner blurb chapters primary-genre secondary-genre]} work
+         follower (some (fn [follow-list]
+                          (= (:xt/id work) follow-list))
+                        (:user/followed user))]
     [:div
      [:div.container.flex.flex-wrap.items-center.justify-between.mx-auto
-       [:a.btn {:href (str "/")}
-        "Home"]
-       [:a.btn {:href (str "/work/" (:xt/id work) "/follow")}
-        "Follow"]]
+       (if follower
+         (biff/form
+          {:action (str "/work/" (:xt/id work) "/unfollow")}
+          [:button.btn {:type "submit"}
+           "Unfollow"])
+         (biff/form
+          {:action (str "/work/" (:xt/id work) "/follow")}
+          [:button.btn {:type "submit"}
+           "Follow"]))]
      [:.h-3]
      [:div
       title
@@ -243,7 +271,7 @@
    {}
    (let [{:genre/keys [display-name description]} genre]
     [:div
-     [:div (str "This is the " display-name " Page!")]
+     [:div.text-xl.font-semibold display-name]
      [:div description]
      [:.h-3]
      [:div
@@ -265,16 +293,14 @@
                 [:.h-3]])))]])))
 
 (defn followed [{:keys [session biff/db] :as req}]
-  (let [user-id (:uid session)
-        {:user/keys [follows]} (xt/entity db user-id)]
-    [:div (str "You are following" follows)]))
-
-(defn follow-work [{:keys [session biff/db work] :as req}]
-  (let [user-id (:uid session)
-        {:user/keys [follows]} (xt/entity db user-id)]
-    (biff/submit-tx req
-                    [[::xt/put
-                      (assoc follows :work/id (:xt/id work))]])))
+  (ui/page
+    {}
+    (let [user-id (:uid session)
+          {:user/keys [followed]} (xt/entity db user-id)]
+      [:div (if (seq followed)
+              (for [work-id followed]
+                [:div work-id])
+              (str "You are not following any works."))])))
 
 (def features
   {:routes [""
@@ -285,6 +311,7 @@
             ["/work/:work-id" {:middleware [wrap-work]}
              ["" {:get work}]
              ["/follow" {:post follow-work}]
+             ["/unfollow" {:post unfollow-work}]
              ["/chapter/:chapter-id" {:middleware [wrap-chapter]}
               ["" {:get chapter}]]]
             ["/genre" {:get genre-home}]

@@ -289,15 +289,11 @@
 (defn work [{:keys [biff/db work owner]}]
   (ui/page
    {}
-   [:a.btn {:href (str "/app")}
-    "Back to Author Dashboard"]
-   [:.h-3]
    [:div
-    (work-content-form db work (get-all-genres db))]
-   [:.h-3]
-   (new-chapter-form work)
-   [:.h-3]
-   [:div
+    (work-content-form db work (get-all-genres db))
+    [:.h-3]
+    (new-chapter-form work)
+    [:.h-3]
     (chapters-list db work (:work/chapters work))]))
 
 (defn chapter [{:keys [biff/db work chapter]}]
