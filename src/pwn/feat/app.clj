@@ -5,7 +5,8 @@
             [pwn.ui :as ui]
             [pwn.util :as util :refer [uid->author
                                        uid->works
-                                       get-all-genres]]
+                                       get-all-genres
+                                       follower-count]]
             [rum.core :as rum]
             [xtdb.api :as xt]
             [ring.adapter.jetty9 :as jetty]
@@ -79,7 +80,7 @@
      :placeholder "User-facing Genre Name (case sensitive)"}]
    [:button.btn {:type "submit"} "Create"]))
 
-(defn works-list [works]
+(defn works-list [db works]
   (if (seq works)
     [:div
      [:.h-3]
@@ -89,6 +90,8 @@
           [:div
            [:a.text-blue-500.hover:text-blue-800 {:href (str "/app/work/" (:xt/id work-map))}
             (:work/title work-map)]
+           " | "
+           (str "Followers: " (follower-count db (:xt/id work-map)))
            " | "
            (biff/form
             {:action (str "/app/work/" (:xt/id work-map) "/delete")
@@ -281,7 +284,7 @@
         [:.h-3]
         (new-work-form)
         (let [works (uid->works db user-id)]
-          (works-list works))
+          (works-list db works))
         [:.h-5]
         (create-genre-form)]
        (become-author-form)))))
