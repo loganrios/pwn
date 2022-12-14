@@ -43,3 +43,9 @@
   (q req
      '{:find (pull genre [*])
        :where [[genre :genre/display-name]]}))
+
+(defn follower-count [db work-id]
+   (count (q db '{:find [user]
+                  :where [[user :user/followed work-id]]
+                  :in [work-id]}
+               work-id)))

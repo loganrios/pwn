@@ -8,7 +8,8 @@
             [pwn.util :as util :refer [uid->author
                                        uid->works
                                        genreid->name
-                                       get-all-genres]]
+                                       get-all-genres
+                                       follower-count]]
             [xtdb.api :as xt]
             [clojure.string :as str]))
 
@@ -179,6 +180,8 @@
        [:div (genreid->name db primary-genre)]
        [:div (genreid->name db primary-genre) " " (genreid->name db secondary-genre)])
      [:.h-3]
+     [:div "This work has " (follower-count db (:xt/id work))" followers."]
+     [:.h-3]
      [:div blurb]
      [:.h-3]
      [:div (chapters-list db work chapters)]])))
@@ -306,8 +309,6 @@
                   (chapters-list db work (:work/chapters work))
                   [:.h-3]])
               (str "You are not following any works."))])))
-
-
 
 (def features
   {:routes [""
