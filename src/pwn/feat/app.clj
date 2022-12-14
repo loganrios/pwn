@@ -276,8 +276,6 @@
      [:.h-3]
      (if-some [author (uid->author db user-id)]
        [:div
-        [:a.btn {:href (str "/")}
-         "Home"]
         [:.h-3]
         (author-info author)
         [:.h-3]

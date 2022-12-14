@@ -112,14 +112,6 @@
        [:span.text-gray-600 (biff/format-date (:chapter/created-at chapter) "d MMM H:mm aa")]])
     [:div "This work has no chapters."]))
 
-(defn home [sys]
-  (ui/page
-   {:base/head (when (util/email-signin-enabled? sys)
-                 recaptcha-scripts)}
-   (signin-form sys)
-   [:.h-3]
-   (works-list (:biff/db sys) (get-all-works sys))))
-
 (defn get-chapter-index [chapters-list chapter-id]
  (first (keep-indexed (fn [index item] (when (#(= chapter-id %) item) index))
                      chapters-list)))
@@ -130,13 +122,24 @@
 (defn get-next-ch-id [chapters-list current-ch-index]
   (get chapters-list (+ current-ch-index 1)))
 
+(defn home [sys]
+  (ui/page
+   {:base/head (when (util/email-signin-enabled? sys)
+                 recaptcha-scripts)}
+   (signin-form sys)
+   [:.h-3]
+   (works-list (:biff/db sys) (get-all-works sys))))
+
 (defn work [{:keys [biff/db work] :as sys}]
   (ui/page
    {}
    (let [{:work/keys [title owner blurb chapters primary-genre secondary-genre]} work]
     [:div
-     [:a.btn {:href (str "/")}
-      "Home"]
+     [:div.container.flex.flex-wrap.items-center.justify-between.mx-auto
+       [:a.btn {:href (str "/")}
+        "Home"]
+       [:a.btn {:href (str "/work/" (:xt/id work) "/follow")}
+        "Follow"]]
      [:.h-3]
      [:div
       title
@@ -261,13 +264,27 @@
                 [:div blurb]
                 [:.h-3]])))]])))
 
+(defn followed [{:keys [session biff/db] :as req}]
+  (let [user-id (:uid session)
+        {:user/keys [follows]} (xt/entity db user-id)]
+    [:div (str "You are following" follows)]))
+
+(defn follow-work [{:keys [session biff/db work] :as req}]
+  (let [user-id (:uid session)
+        {:user/keys [follows]} (xt/entity db user-id)]
+    (biff/submit-tx req
+                    [[::xt/put
+                      (assoc follows :work/id (:xt/id work))]])))
+
 (def features
   {:routes [""
             ["/" {:get home}]
+            ["/user/followed" {:get followed}]
             ["/author/:author-id" {:middleware [wrap-author]}
              ["" {:get author}]]
             ["/work/:work-id" {:middleware [wrap-work]}
              ["" {:get work}]
+             ["/follow" {:post follow-work}]
              ["/chapter/:chapter-id" {:middleware [wrap-chapter]}
               ["" {:get chapter}]]]
             ["/genre" {:get genre-home}]

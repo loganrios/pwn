@@ -7,6 +7,7 @@
    :user [:map {:closed true}
           [:xt/id :user/id]
           [:user/email :string]
+          [:user/follows {:optional true} [:vector :work/id]]
           [:user/joined-at inst?]]
 
    :author/id :uuid
