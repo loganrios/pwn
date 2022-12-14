@@ -143,10 +143,10 @@
       " | "
       (str "By: " (:author/pen-name (uid->author db owner)))]
      [:.h-1]
-     [:div
-      (genreid->name db primary-genre)
-      " "
-      (genreid->name db secondary-genre)]
+     [:div]
+     (if (= primary-genre secondary-genre)
+       [:div (genreid->name db primary-genre)]
+       [:div (genreid->name db primary-genre) " " (genreid->name db secondary-genre)])
      [:.h-3]
      [:div blurb]
      [:.h-3]
