@@ -201,15 +201,17 @@
    [:div
     [:div "Works:"
      (for [work works]
-       (let [work-map (first work)]
+       (let [work-map (first work)
+             {:work/keys [title primary-genre secondary-genre blurb]} work-map]
          [:div
           [:a.text-blue-500.hover:text-blue-800 {:href (str "/work/" (:xt/id work-map))}
-           (:work/title work-map)]
+           title]
           [:div
-           (genreid->name db (:work/primary-genre work-map))
-           " "
-           (genreid->name db (:work/secondary-genre work-map))]
-          [:div (:work/blurb work-map)]]))]]
+           (if (= primary-genre secondary-genre)
+             [:div (genreid->name db primary-genre)]
+             [:div (genreid->name db primary-genre) " " (genreid->name db secondary-genre)])
+           [:div blurb]]
+          [:.h-3]]))]]
    [:div "This author has no works."]))
 
 (defn author [{:keys [biff/db author]}]
