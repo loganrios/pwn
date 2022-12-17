@@ -285,8 +285,7 @@
         (new-work-form)
         (let [works (uid->works db user-id)]
           (works-list db works))
-        [:.h-5]
-        (create-genre-form)]
+        [:.h-5]]
        (become-author-form)))))
 
 (defn work [{:keys [biff/db work owner]}]
