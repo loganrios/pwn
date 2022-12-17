@@ -185,6 +185,27 @@
      [:.h-3]
      [:div (chapters-list db work chapters)]])))
 
+(defn new-comment-form [chapter work]
+  (biff/form
+   {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/new-comment")}
+   [:div "Add a comment"]
+   [:input#comment
+    {:name "comment"
+     :type "text"
+     :placeholder "Enter comment text here"}]
+   [:button.btn {:type "submit"} "Post"]))
+
+(defn new-comment [{:keys [params session work chapter] :as req}]
+  (let [comment-id (random-uuid)]
+    (biff/submit-tx req
+                    [{:db/doc-type :comment
+                      :xt/id comment-id
+                      :comment/content (:comment params)
+                      :comment/timestamp (biff/now)
+                      :comment/owner (:uid session)}]))
+  {:status 303
+   :headers {"Location" (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter))}})
+
 (defn chapter [{:keys [biff/db work chapter]}]
   (ui/page
    {}
@@ -216,7 +237,9 @@
        "Work Home"]
       (when (not (nil? next-chapter-id))
        [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" next-chapter-id)}
-        "Next"])]
+        "Next"])
+      [:.h-3]
+      (new-comment-form chapter work)]
      [:div
       (when (not (nil? previous-chapter-id))
        [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" previous-chapter-id)}
@@ -320,7 +343,8 @@
              ["/follow" {:post follow-work}]
              ["/unfollow" {:post unfollow-work}]
              ["/chapter/:chapter-id" {:middleware [wrap-chapter]}
-              ["" {:get chapter}]]]
+              ["" {:get chapter}]
+              ["/new-comment" {:post new-comment}]]]
             ["/genre" {:get genre-home}]
             ["/genre/:genre-slug" {:middleware [wrap-genre]}
              ["" {:get genre-by-id}]]]})

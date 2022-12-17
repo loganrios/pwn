@@ -33,13 +33,22 @@
              [:xt/id :chapter/id]
              [:chapter/title :string]
              [:chapter/content {:optional true} :string]
-             [:chapter/created-at inst?]]
+             [:chapter/created-at inst?]
+             [:chapter/comments {:optional true} [:vector :comment/id]]]
 
    :genre/id :keyword
    :genre [:map {:closed true}
            [:xt/id :genre/id]
            [:genre/slug :string]
            [:genre/description :string]
-           [:genre/display-name :string]]})
+           [:genre/display-name :string]]
+
+   :comment/id :uuid
+   :comment [:map {:closed true}
+             [:xt/id :comment/id]
+             [:comment/owner :user/id]
+             [:comment/content :string]
+             [:comment/timestamp inst?]
+             [:comment/replies {:optional true} [:set :comment/id]]]})
 
 (def malli-opts {:registry (malr/composite-registry malc/default-registry schema)})
