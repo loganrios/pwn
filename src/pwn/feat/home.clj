@@ -202,14 +202,16 @@
                       :xt/id comment-id
                       :comment/content (:comment params)
                       :comment/timestamp (biff/now)
-                      :comment/owner (:uid session)}]))
+                      :comment/owner (:uid session)}
+                     [::xt/put
+                      (assoc chapter :chapter/comments (conj (vec (:chapter/comments work)) comment-id))]]))
   {:status 303
    :headers {"Location" (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter))}})
 
 (defn chapter [{:keys [biff/db work chapter]}]
   (ui/page
    {}
-   (let [{:chapter/keys [title content]} chapter
+   (let [{:chapter/keys [title content comments]} chapter
          {:work/keys [chapters]} work
          current-ch-index (get-chapter-index chapters (:xt/id chapter))
          previous-chapter-id (get-prev-ch-id (:work/chapters work) current-ch-index)
@@ -239,7 +241,10 @@
        [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" next-chapter-id)}
         "Next"])
       [:.h-3]
-      (new-comment-form chapter work)]
+      (new-comment-form chapter work)
+      [:div
+       (for [comment comments]
+        (:comment/content (xt/entity db comment)))]]
      [:div
       (when (not (nil? previous-chapter-id))
        [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" previous-chapter-id)}
