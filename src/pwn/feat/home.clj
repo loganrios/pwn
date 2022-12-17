@@ -95,10 +95,9 @@
       [:a.text-blue-500.hover:text-blue-800 {:href (str "/author/" id)}
        pen-name])
      [:div
-      " "
-      (genreid->name db primary-genre)
-      " "
-      (genreid->name db secondary-genre)]
+       (if (= primary-genre secondary-genre)
+        [:div (genreid->name db primary-genre)]
+        [:div (genreid->name db primary-genre) " " (genreid->name db secondary-genre)])]
      [:div
       blurb]
      [:.h-3]])))
@@ -155,12 +154,12 @@
    (let [user-id (:uid session)
          user (xt/entity db user-id)
          {:work/keys [title owner blurb chapters primary-genre secondary-genre]} work
-         follower (some (fn [follow-list]
-                          (= (:xt/id work) follow-list))
-                        (:user/followed user))]
+         follower? (some (fn [follow-list]
+                           (= (:xt/id work) follow-list))
+                         (:user/followed user))]
     [:div
      [:div.container.flex.flex-wrap.items-center.justify-between.mx-auto
-       (if follower
+       (if follower?
          (biff/form
           {:action (str "/work/" (:xt/id work) "/unfollow")}
           [:button.btn {:type "submit"}
