@@ -140,6 +140,29 @@
   {:status 303
    :headers {"Location" (str "/work/" (:xt/id work))}})
 
+(defn new-comment-form [work chapter]
+  (biff/form
+   {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/new-comment")}
+   [:div "Add a comment"]
+   [:input#comment
+    {:name "comment"
+     :type "text"
+     :placeholder "Enter comment text here"}]
+   [:button.btn {:type "submit"} "Post"]))
+
+(defn new-comment [{:keys [params session work chapter] :as req}]
+  (let [comment-id (random-uuid)]
+    (biff/submit-tx req
+                    [{:db/doc-type :comment
+                      :xt/id comment-id
+                      :comment/content (:comment params)
+                      :comment/timestamp (biff/now)
+                      :comment/owner (:uid session)}
+                     [::xt/put
+                      (assoc chapter :chapter/comments (conj (vec (:chapter/comments chapter)) comment-id))]]))
+  {:status 303
+   :headers {"Location" (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter))}})
+
 (defn home [sys]
   (ui/page
    {:base/head (when (util/email-signin-enabled? sys)
@@ -185,29 +208,6 @@
      [:.h-3]
      [:div (chapters-list db work chapters)]])))
 
-(defn new-comment-form [chapter work]
-  (biff/form
-   {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/new-comment")}
-   [:div "Add a comment"]
-   [:input#comment
-    {:name "comment"
-     :type "text"
-     :placeholder "Enter comment text here"}]
-   [:button.btn {:type "submit"} "Post"]))
-
-(defn new-comment [{:keys [params session work chapter] :as req}]
-  (let [comment-id (random-uuid)]
-    (biff/submit-tx req
-                    [{:db/doc-type :comment
-                      :xt/id comment-id
-                      :comment/content (:comment params)
-                      :comment/timestamp (biff/now)
-                      :comment/owner (:uid session)}
-                     [::xt/put
-                      (assoc chapter :chapter/comments (conj (vec (:chapter/comments work)) comment-id))]]))
-  {:status 303
-   :headers {"Location" (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter))}})
-
 (defn chapter [{:keys [biff/db work chapter]}]
   (ui/page
    {}
@@ -241,10 +241,10 @@
        [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" next-chapter-id)}
         "Next"])
       [:.h-3]
-      (new-comment-form chapter work)
+      (new-comment-form work chapter)
       [:div
        (for [comment comments]
-        (:comment/content (xt/entity db comment)))]]
+        [:div (:comment/content (xt/entity db comment))])]]
      [:div
       (when (not (nil? previous-chapter-id))
        [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" previous-chapter-id)}
