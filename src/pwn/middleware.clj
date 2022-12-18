@@ -39,3 +39,9 @@
     (if-some [genre (xt/entity db (keyword (:genre-slug path-params)))]
       (handler (assoc req :genre genre))
       (handler req))))
+
+(defn wrap-comment [handler]
+  (fn [{:keys [biff/db path-params] :as req}]
+    (if-some [comment (xt/entity db (parse-uuid (:comment-id path-params)))]
+      (handler (assoc req :comment comment))
+      (handler req))))

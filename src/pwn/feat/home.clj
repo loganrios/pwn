@@ -3,7 +3,8 @@
             [pwn.middleware :as mid :refer [wrap-work
                                             wrap-chapter
                                             wrap-author
-                                            wrap-genre]]
+                                            wrap-genre
+                                            wrap-comment]]
             [pwn.ui :as ui]
             [pwn.util :as util :refer [uid->author
                                        uid->works
@@ -163,6 +164,13 @@
   {:status 303
    :headers {"Location" (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter))}})
 
+(defn delete-comment [{:keys [biff/db work chapter comment] :as req}]
+  (biff/submit-tx req
+                    [[::xt/put
+                      (assoc chapter :chapter/comments (remove #(= (:xt/id comment) %) (:chapter/comments chapter)))]])
+  {:status 303
+   :headers {"Location" (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter))}})
+
 (defn home [sys]
   (ui/page
    {:base/head (when (util/email-signin-enabled? sys)
@@ -243,8 +251,14 @@
       [:.h-3]
       (new-comment-form work chapter)
       [:div
-       (for [comment comments]
-        [:div (:comment/content (xt/entity db comment))])]]
+       (for [comment-id comments]
+         (let [comment (xt/entity db comment-id)]
+           [:div (:comment/content comment)
+            " | "
+            (biff/form
+             {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/delete")
+              :class "inline"}
+             [:button.text-blue-500.hover:text-blue-800 {:type "submit"} "Delete"])]))]]
      [:div
       (when (not (nil? previous-chapter-id))
        [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" previous-chapter-id)}
@@ -349,7 +363,9 @@
              ["/unfollow" {:post unfollow-work}]
              ["/chapter/:chapter-id" {:middleware [wrap-chapter]}
               ["" {:get chapter}]
-              ["/new-comment" {:post new-comment}]]]
+              ["/new-comment" {:post new-comment}]
+              ["/comment/:comment-id" {:middleware [wrap-comment]}
+               ["/delete" {:post delete-comment}]]]]
             ["/genre" {:get genre-home}]
             ["/genre/:genre-slug" {:middleware [wrap-genre]}
              ["" {:get genre-by-id}]]]})
