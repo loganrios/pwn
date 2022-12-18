@@ -39,7 +39,6 @@
    :genre/id :keyword
    :genre [:map {:closed true}
            [:xt/id :genre/id]
-           [:genre/slug :string]
            [:genre/description :string]
            [:genre/display-name :string]]
 

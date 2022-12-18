@@ -36,7 +36,7 @@
 
 (defn wrap-genre [handler]
   (fn [{:keys [biff/db path-params] :as req}]
-    (if-some [genre (xt/entity db (keyword (:genre-slug path-params)))]
+    (if-some [genre (xt/entity db (keyword (:genre-id path-params)))]
       (handler (assoc req :genre genre))
       (handler req))))
 

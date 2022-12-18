@@ -331,7 +331,7 @@
           [:.h-1]
           [:div
            (for [genre genre-list]
-             [:div [:a.text-blue-500.hover:text-blue-800 {:href (str "/genre/" (:genre/slug genre))}
+             [:div [:a.text-blue-500.hover:text-blue-800 {:href (str "/genre/" (name (:xt/id genre)))}
                     (:genre/display-name genre)]])]]
         [:div "There are currently no genres to choose from."])])))
 
@@ -394,5 +394,5 @@
                          :post edit-comment}]
                ["/delete" {:post delete-comment}]]]]
             ["/genre" {:get genre-home}]
-            ["/genre/:genre-slug" {:middleware [wrap-genre]}
+            ["/genre/:genre-id" {:middleware [wrap-genre]}
              ["" {:get genre-by-id}]]]})
