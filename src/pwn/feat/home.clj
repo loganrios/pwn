@@ -151,7 +151,7 @@
      :placeholder "Enter comment text here"}]
    [:button.btn {:type "submit"} "Post"]))
 
-(defn new-comment [{:keys [params session work chapter] :as req}]
+(defn new-comment [{:keys [session work chapter params] :as req}]
   (let [comment-id (random-uuid)]
     (biff/submit-tx req
                     [{:db/doc-type :comment
@@ -164,10 +164,29 @@
   {:status 303
    :headers {"Location" (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter))}})
 
-(defn delete-comment [{:keys [biff/db work chapter comment] :as req}]
+(defn delete-comment [{:keys [work chapter comment] :as req}]
   (biff/submit-tx req
                     [[::xt/put
                       (assoc chapter :chapter/comments (remove #(= (:xt/id comment) %) (:chapter/comments chapter)))]])
+  {:status 303
+   :headers {"Location" (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter))}})
+
+(defn edit-comment-form [{:keys [work chapter comment] :as req}]
+  (let [{:comment/keys [content]} comment]
+   (biff/form
+    {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/edit")}
+    [:input#edit-comment
+     {:name "new-content"
+      :type "text"
+      :value content}]
+    [:button.btn {:type "submit"} "Submit"])))
+
+(defn edit-comment [{:keys [work chapter comment params] :as req}]
+  (biff/submit-tx req
+                  [{:db/doc-type :comment
+                    :db/op merge
+                    :xt/id (:xt/id comment)
+                    :comment/content (:new-content params)}])
   {:status 303
    :headers {"Location" (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter))}})
 
@@ -216,7 +235,7 @@
      [:.h-3]
      [:div (chapters-list db work chapters)]])))
 
-(defn chapter [{:keys [biff/db work chapter]}]
+(defn chapter [{:keys [session biff/db work chapter]}]
   (ui/page
    {}
    (let [{:chapter/keys [title content comments]} chapter
@@ -253,12 +272,22 @@
       [:div
        (for [comment-id comments]
          (let [comment (xt/entity db comment-id)]
-           [:div (:comment/content comment)
-            " | "
-            (biff/form
-             {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/delete")
-              :class "inline"}
-             [:button.text-blue-500.hover:text-blue-800 {:type "submit"} "Delete"])]))]]
+           [:div {:hx-target "this" :hx-swap "outerHTML"}
+            (:comment/content comment)
+            (if (= (:uid session) (:comment/owner comment))
+              [:div
+               [:a.text-blue-500.hover:text-blue-800 {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/edit")}
+                "Edit"]
+               " | "
+               (biff/form
+                {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/delete")
+                 :class "inline"}
+                [:button.text-blue-500.hover:text-blue-800 {:type "submit"} "Delete"])]
+              [:div
+               (biff/form
+                {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/delete")
+                 :class "inline"}
+                [:button.text-blue-500.hover:text-blue-800 {:type "submit"} "Delete"])])]))]]
      [:div
       (when (not (nil? previous-chapter-id))
        [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" previous-chapter-id)}
@@ -365,6 +394,8 @@
               ["" {:get chapter}]
               ["/new-comment" {:post new-comment}]
               ["/comment/:comment-id" {:middleware [wrap-comment]}
+               ["/edit" {:get edit-comment-form
+                         :post edit-comment}]
                ["/delete" {:post delete-comment}]]]]
             ["/genre" {:get genre-home}]
             ["/genre/:genre-slug" {:middleware [wrap-genre]}
