@@ -2,6 +2,7 @@
   (:require [com.biffweb :as biff]
             [pwn.feat.app :as app]
             [pwn.feat.auth :as auth]
+            [pwn.feat.admin :as admin]
             [pwn.feat.home :as home]
             [pwn.feat.worker :as worker]
             [pwn.schema :refer [malli-opts]]
@@ -15,6 +16,7 @@
 (def features
   [app/features
    auth/features
+   admin/features
    home/features
    worker/features])
 

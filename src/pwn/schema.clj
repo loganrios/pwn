@@ -10,6 +10,12 @@
           [:user/followed {:optional true} [:vector :work/id]]
           [:user/joined-at inst?]]
 
+   :admin/id :uuid
+   :admin [:map {:closed true}
+           [:xt/id :admin/id]
+           [:admin/user :user/id]
+           [:admin/promoted-by {:optional true} :admin/id]]
+
    :author/id :uuid
    :author/pen-name :string
    :author/user :user/id

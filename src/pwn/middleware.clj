@@ -1,5 +1,6 @@
 (ns pwn.middleware
-  (:require [xtdb.api :as xt]))
+  (:require [com.biffweb :as biff]
+            [xtdb.api :as xt]))
 
 (defn wrap-redirect-signed-in [handler]
   (fn [{:keys [session] :as req}]
@@ -14,6 +15,14 @@
       (handler req)
       {:status 303
        :headers {"location" "/"}})))
+
+(defn wrap-admin [handler]
+  (fn [{:keys [session biff/db] :as req}]
+    (let [admin (biff/lookup db :admin/user (:uid session))]
+      (if admin
+        (handler (assoc req :admin admin))
+        {:status 303
+         :headers {"Location" "/"}}))))
 
 (defn wrap-work [handler]
   (fn [{:keys [biff/db path-params] :as req}]

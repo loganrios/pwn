@@ -54,32 +54,6 @@
      :placeholder "Pen Name"}]
    [:button.btn {:type "submit"} "Create"]))
 
-(defn create-genre-form []
-  (biff/form
-   {:action "/app/create-genre"}
-   [:div "Add a New Genre to ProjectWebNovel"]
-   [:div "(genre-id and slug must match or the genre page will break.)"]
-   [:input#genre-id
-    {:name "genre-id"
-     :type "keyword"
-     :placeholder "Genre ID (Do not include ':')"}]
-   [:.h-1]
-   [:input#slug
-    {:name "slug"
-     :type "string"
-     :placeholder "Slug"}]
-   [:.h-1]
-   [:input#description
-    {:name "description"
-     :type "string"
-     :placeholder "Description"}]
-   [:.h-1]
-   [:input#display-name
-    {:name "display-name"
-     :type "string"
-     :placeholder "User-facing Genre Name (case sensitive)"}]
-   [:button.btn {:type "submit"} "Create"]))
-
 (defn works-list [db works]
   (if (seq works)
     [:div
@@ -258,16 +232,6 @@
        blurb]])
    [:h-3]
    [:button.btn {:type "submit"} "Update Work Info"]))
-
-(defn new-genre [{:keys [params] :as req}]
-    (biff/submit-tx req
-                    [{:db/doc-type :genre
-                      :xt/id (keyword (:genre-id params))
-                      :genre/slug (:slug params)
-                      :genre/description (:description params)
-                      :genre/display-name (:display-name params)}])
-  {:status 303
-   :headers {"Location" "/app"}})
 
 (defn app [{:keys [session biff/db] :as req}]
   (let [user-id (:uid session)
