@@ -235,11 +235,13 @@
      [:.h-3]
      [:div (chapters-list db work chapters)]])))
 
-(defn chapter [{:keys [session biff/db work chapter]}]
+(defn chapter [{:keys [session biff/db work owner chapter]}]
   (ui/page
    {}
    (let [{:chapter/keys [title content comments]} chapter
          {:work/keys [chapters]} work
+         user (:uid session)
+         admin (biff/lookup db :admin/user user)
          current-ch-index (get-chapter-index chapters (:xt/id chapter))
          previous-chapter-id (get-prev-ch-id (:work/chapters work) current-ch-index)
          next-chapter-id (get-next-ch-id (:work/chapters work) current-ch-index)]
@@ -274,7 +276,7 @@
          (let [comment (xt/entity db comment-id)]
            [:div {:hx-target "this" :hx-swap "outerHTML"}
             (:comment/content comment)
-            (if (= (:uid session) (:comment/owner comment))
+            (if (= user (:comment/owner comment))
               [:div
                [:a.text-blue-500.hover:text-blue-800 {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/edit")}
                 "Edit"]
@@ -283,7 +285,13 @@
                 {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/delete")
                  :class "inline"}
                 [:button.text-blue-500.hover:text-blue-800 {:type "submit"} "Delete"])]
-              nil)]))]]
+              (if (= user owner)
+                [:div
+                 (biff/form
+                  {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/delete")
+                   :class "inline"}
+                  [:button.text-blue-500.hover:text-blue-800 {:type "submit"} "Delete"])]
+                nil))]))]]
      [:div
       (when (not (nil? previous-chapter-id))
        [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" previous-chapter-id)}
