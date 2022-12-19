@@ -72,10 +72,13 @@
         get-user-id #(biff/lookup-id (xt/db node) :user/email email)
         existing-user-id (when success (get-user-id))]
     (when (and success (not existing-user-id))
-      (biff/submit-tx req
-        [{:db/doc-type :user
-          :db.op/upsert {:user/email email}
-          :user/joined-at :db/now}]))
+      (let [user-id (random-uuid)]
+        (biff/submit-tx req
+          [{:db/doc-type :user
+            :xt/id user-id
+            :user/email email
+            :user/username (str user-id)
+            :user/joined-at :db/now}])))
     (if-not success
       {:status 303
        :headers {"location" "/auth/fail/"}}
