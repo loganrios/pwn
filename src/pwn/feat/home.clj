@@ -198,6 +198,43 @@
    [:.h-3]
    (works-list (:biff/db sys) (get-all-works sys))))
 
+(defn comment-view [db user admin owner work chapter]
+    (for [comment-id (:chapter/comments chapter)]
+      (let [comment (xt/entity db comment-id)
+            {:comment/keys [content timestamp replies]} comment
+            comment-owner (xt/entity db (:comment/owner comment))]
+        [:div
+         [:.text-sm
+          [:span.font-bold (:user/username comment-owner)]
+          [:span.w-2.inline-block]
+          [:span.text-gray-600 (biff/format-date timestamp "d MMM h:mm aa")]]
+         [:div {:hx-target "this" :hx-swap "outerHTML"}
+          content
+          (if (= user (:comment/owner comment))
+           [:.text-sm
+            [:a.text-blue-500.hover:text-blue-800 {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/edit")}
+             "Edit"]
+            [:span.w-2.inline-block]
+            [:span
+             (biff/form
+              {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/delete")
+               :class "inline"}
+              [:button.text-blue-500.hover:text-blue-800 {:type "submit"} "Delete"])]]
+           (if (= user owner)
+             [:div
+              (biff/form
+               {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/delete")
+                :class "inline"}
+               [:button.text-blue-500.hover:text-blue-800 {:type "submit"} "Delete"])]
+             (if admin
+               [:div
+                (biff/form
+                 {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/delete")
+                  :class "inline"}
+                 [:button.text-blue-500.hover:text-blue-800 {:type "submit"} "Delete"])]
+               nil)))]
+         [:p.whitespace-pre-wrap.mb-6]])))
+
 (defn work [{:keys [session biff/db work] :as sys}]
   (ui/page
    {}
@@ -235,37 +272,6 @@
      [:div blurb]
      [:.h-3]
      [:div (chapters-list db work chapters)]])))
-
-(defn comment-view [db user admin owner work chapter]
-    (for [comment-id (:chapter/comments chapter)]
-      (let [comment (xt/entity db comment-id)]
-        [:div {:hx-target "this" :hx-swap "outerHTML"}
-         (:comment/content comment)
-         " | "
-         (:comment/timestamp comment)
-         (if (= user (:comment/owner comment))
-           [:div
-            [:a.text-blue-500.hover:text-blue-800 {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/edit")}
-             "Edit"]
-            " | "
-            (biff/form
-             {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/delete")
-              :class "inline"}
-             [:button.text-blue-500.hover:text-blue-800 {:type "submit"} "Delete"])]
-           (if (= user owner)
-             [:div
-              (biff/form
-               {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/delete")
-                :class "inline"}
-               [:button.text-blue-500.hover:text-blue-800 {:type "submit"} "Delete"])]
-             (if admin
-               [:div
-                (biff/form
-                 {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/delete")
-                  :class "inline"}
-                 [:button.text-blue-500.hover:text-blue-800 {:type "submit"} "Delete"])]
-               nil)))])))
-
 
 (defn chapter [{:keys [session biff/db work owner chapter]}]
   (ui/page
@@ -305,6 +311,7 @@
       (if user
        (new-comment-form work chapter)
        nil)
+      [:.h-3]
       (comment-view db user admin owner work chapter)]
      [:div
       (when (not (nil? previous-chapter-id))
