@@ -209,7 +209,7 @@
                          (:user/followed user))]
     [:div
      [:div.container.flex.flex-wrap.items-center.justify-between.mx-auto
-      (when (seq user-id)
+      (when user-id
        (if follower?
          (biff/form
           {:action (str "/work/" (:xt/id work) "/unfollow")}
