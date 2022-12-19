@@ -275,7 +275,6 @@
 (def features
   {:routes ["/app" {:middleware [mid/wrap-signed-in]}
             ["" {:get app}]
-            ["/create-genre" {:post new-genre}]
             ["/author" {:post new-author}]
             ["/work" {:post new-work}]
             ["/work/:work-id" {:middleware [wrap-work]}
