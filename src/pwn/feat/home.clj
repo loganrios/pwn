@@ -291,7 +291,13 @@
                   {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/delete")
                    :class "inline"}
                   [:button.text-blue-500.hover:text-blue-800 {:type "submit"} "Delete"])]
-                nil))]))]]
+                (if admin
+                  [:div
+                   (biff/form
+                    {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/delete")
+                     :class "inline"}
+                    [:button.text-blue-500.hover:text-blue-800 {:type "submit"} "Delete"])]
+                  nil)))]))]]
      [:div
       (when (not (nil? previous-chapter-id))
        [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" previous-chapter-id)}
