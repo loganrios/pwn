@@ -205,7 +205,10 @@
             comment-owner (xt/entity db (:comment/owner comment))]
         [:div
          [:.text-sm
-          [:span.font-bold (:user/username comment-owner)]
+          [:span.font-bold
+           (if (= (:comment/owner comment) owner)
+             (:author/pen-name (uid->author db (:comment/owner comment)))
+             (:user/username comment-owner))]
           [:span.w-2.inline-block]
           [:span.text-gray-600 (biff/format-date timestamp "d MMM h:mm aa")]]
          [:div {:hx-target "this" :hx-swap "outerHTML"}
