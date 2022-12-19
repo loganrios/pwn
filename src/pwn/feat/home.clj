@@ -207,7 +207,8 @@
          [:.text-sm
           [:span.font-bold
            (if (= (:comment/owner comment) owner)
-             (:author/pen-name (uid->author db (:comment/owner comment)))
+             [:span.text-blue-600
+              (str "Author - "(:author/pen-name (uid->author db (:comment/owner comment))))]
              (:user/username comment-owner))]
           [:span.w-2.inline-block]
           [:span.text-gray-600 (biff/format-date timestamp "d MMM h:mm aa")]]
