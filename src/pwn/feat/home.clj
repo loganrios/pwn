@@ -125,19 +125,27 @@
 
 (defn follow-work [{:keys [session biff/db work] :as req}]
   (let [user-id (:uid session)
-        user (xt/entity db user-id)]
+        user (xt/entity db user-id)
+        prev-follows (:user/followed user)
+        work-id (:xt/id work)]
     (biff/submit-tx req
-                    [[::xt/put
-                      (assoc user :user/followed (conj (vec (:user/followed user)) (:xt/id work)))]]))
+                    [{:db/doc-type :user
+                      :db/op :merge
+                      :xt/id user-id
+                      :user/followed (conj prev-follows work-id)}]))
   {:status 303
    :headers {"Location" (str "/work/" (:xt/id work))}})
 
 (defn unfollow-work [{:keys [session biff/db work] :as req}]
   (let [user-id (:uid session)
-        user (xt/entity db user-id)]
+        user (xt/entity db user-id)
+        prev-follows (:user/followed user)
+        work-id (:xt/id work)]
     (biff/submit-tx req
-                    [[::xt/put
-                      (assoc user :user/followed (remove #(= (:xt/id work) %) (:user/followed user)))]]))
+                    [{:db/doc-type :user
+                      :db/op :merge
+                      :xt/id user-id
+                      :user/followed (disj prev-follows work-id)}]))
   {:status 303
    :headers {"Location" (str "/work/" (:xt/id work))}})
 
@@ -194,8 +202,8 @@
   (ui/page
    {:base/head (when (util/email-signin-enabled? sys)
                  recaptcha-scripts)}
-   (signin-form sys)
-   [:.h-3]
+   (when-not (get-in sys [:session :uid])
+     [:div (signin-form sys) [:.h-3]])
    (works-list (:biff/db sys) (get-all-works sys))))
 
 (defn work [{:keys [session biff/db work] :as sys}]

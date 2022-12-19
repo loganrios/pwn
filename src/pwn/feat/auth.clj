@@ -78,7 +78,8 @@
             :xt/id user-id
             :user/email email
             :user/username (str user-id)
-            :user/joined-at :db/now}])))
+            :user/joined-at :db/now
+            :user/followed #{}}])))
     (if-not success
       {:status 303
        :headers {"location" "/auth/fail/"}}

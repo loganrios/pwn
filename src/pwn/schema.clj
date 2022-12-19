@@ -8,7 +8,7 @@
           [:xt/id :user/id]
           [:user/email :string]
           [:user/username :string]
-          [:user/followed {:optional true} [:vector :work/id]]
+          [:user/followed {:optional true} [:set :work/id]]
           [:user/joined-at inst?]]
 
    :admin/id :uuid

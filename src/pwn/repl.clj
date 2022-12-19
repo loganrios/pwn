@@ -1,9 +1,12 @@
 (ns pwn.repl
-  (:require [com.biffweb :as biff :refer [q]]
+  (:require [com.biffweb :as biff :refer [q lookup lookup-id submit-tx]]
             [xtdb.api :as xt]))
 
 (defn get-sys []
   (biff/assoc-db @biff/system))
+
+(defn get-db []
+  (:biff/db (get-sys)))
 
 (defn fq
   "List all entities in the database."
@@ -13,16 +16,6 @@
        :where [[e :xt/id]]}))
 
 (comment
-
-  ;; As of writing this, calling (biff/refresh) with Conjure causes stdout to
-  ;; start going to Vim. fix-print makes sure stdout keeps going to the
-  ;; terminal. It may not be necessary in your editor.
-  (biff/fix-print (biff/refresh))
-
-  (let [{:keys [biff/db]} (get-sys)]
-    (q db '{:find [e]
-            :where [[e :author/user]]}))
-
   ;;Genre Seed for Testing
 
   (defn seed [documents]
