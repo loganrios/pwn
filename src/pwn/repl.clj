@@ -48,7 +48,7 @@
 
   (fq (:biff/db (get-sys)))
 
-    ;; Check the terminal for output.
+  ;; Check the terminal for output.
   (biff/submit-job (get-sys) :echo {:foo "bar"})
   (deref (biff/submit-job-for-result (get-sys) :echo {:foo "bar"}))
 

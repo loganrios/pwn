@@ -209,6 +209,7 @@
                          (:user/followed user))]
     [:div
      [:div.container.flex.flex-wrap.items-center.justify-between.mx-auto
+      (when (seq user-id)
        (if follower?
          (biff/form
           {:action (str "/work/" (:xt/id work) "/unfollow")}
@@ -217,7 +218,7 @@
          (biff/form
           {:action (str "/work/" (:xt/id work) "/follow")}
           [:button.btn {:type "submit"}
-           "Follow"]))]
+           "Follow"])))]
      [:.h-3]
      [:div
       title
