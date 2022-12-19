@@ -10,7 +10,8 @@
             [rum.core :as rum]
             [xtdb.api :as xt]
             [ring.adapter.jetty9 :as jetty]
-            [cheshire.core :as cheshire]))
+            [cheshire.core :as cheshire]
+            [clojure.string :as str]))
 
 (defn auth-info [email]
   [:div "Signed in as " email ". "
@@ -233,14 +234,45 @@
    [:h-3]
    [:button.btn {:type "submit"} "Update Work Info"]))
 
+(defn user-info-form [user]
+  (biff/form
+   {:action "/app/user/settings"}
+   (let [{:user/keys [email username joined-at]} user]
+     [:div
+      [:div (str "Email: " email)]
+      [:.h-1]
+      [:p "Username: "]
+      [:input#username
+       {:name "username"
+        :type "text"
+        :value username
+        :required true}]
+      [:.h-1]
+      [:div (str "Joined: " (biff/format-date joined-at "d MMM YYYY"))]
+      [:.h-1]
+      [:button.btn {:type "submit"} "Update User Info"]
+      [:.h-3]])))
+
+(defn update-user [{:keys [session biff/db params] :as req}]
+  (let [user-id (:uid session)
+        user (xt/entity db user-id)]
+    (biff/submit-tx req
+                    [{:db/doc-type :user
+                      :db/op merge
+                      :xt/id (:xt/id user)
+                      :user/username (:username params)}]))
+  {:status 303
+   :headers {"Location" "/app/user/settings"}})
+
 (defn app [{:keys [session biff/db] :as req}]
   (let [user-id (:uid session)
-        {:user/keys [email]} (xt/entity db user-id)]
+        {:user/keys [email username]} (xt/entity db user-id)]
     (ui/page
      {}
      nil
      (auth-info email)
      [:.h-3]
+     (str "Your username is: " username)
      (if-some [author (uid->author db user-id)]
        [:div
         [:.h-3]
@@ -252,7 +284,15 @@
         [:.h-5]]
        (become-author-form)))))
 
-(defn work [{:keys [biff/db work owner]}]
+(defn user [{:keys [session biff/db] :as req}]
+  (let [user-id (:uid session)
+        user (xt/entity db user-id)]
+    (ui/page
+     {}
+     [:div
+      (user-info-form user)])))
+
+(defn work [{:keys [biff/db work owner] :as req}]
   (ui/page
    {}
    [:div
@@ -262,7 +302,7 @@
     [:.h-3]
     (chapters-list db work (:work/chapters work))]))
 
-(defn chapter [{:keys [biff/db work chapter]}]
+(defn chapter [{:keys [biff/db work chapter] :as req}]
   (ui/page
    {:base/head
      [[:script {:src "https://cdn.quilljs.com/1.3.6/quill.js"}]]}
@@ -275,6 +315,8 @@
 (def features
   {:routes ["/app" {:middleware [mid/wrap-signed-in]}
             ["" {:get app}]
+            ["/user/settings" {:get user
+                               :post update-user}]
             ["/author" {:post new-author}]
             ["/work" {:post new-work}]
             ["/work/:work-id" {:middleware [wrap-work]}

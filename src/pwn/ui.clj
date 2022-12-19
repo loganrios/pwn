@@ -28,7 +28,8 @@
     [:a.text-blue-500.text-xl.font-semibold {:href "/"} "Project Web Novel"]
     [:a.text-blue-500 {:href "/genre"} "Genres"]
     [:a.text-blue-500 {:href "/user/followed"} "Followed"]
-    [:a.text-blue-500 {:href "/app"} "Dashboard"]]
+    [:a.text-blue-500 {:href "/app"} "Dashboard"]
+    [:a.text-blue-500 {:href "/app/user/settings"} "Settings"]]
    [:.h-5]])
 
 (defn page [opts & body]
