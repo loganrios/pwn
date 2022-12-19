@@ -339,7 +339,8 @@
             ["" {:get app}]
             ["/user/settings" {:get user
                                :post update-user}]
-            ["/author" {:post new-author}
+            ["/author"
+             ["" {:post new-author}]
              ["/update" {:post update-author}]]
             ["/work" {:post new-work}]
             ["/work/:work-id" {:middleware [wrap-work]}
