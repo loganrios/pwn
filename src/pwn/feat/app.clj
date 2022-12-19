@@ -250,8 +250,7 @@
       [:.h-1]
       [:div (str "Joined: " (biff/format-date joined-at "d MMM YYYY"))]
       [:.h-1]
-      [:button.btn {:type "submit"} "Update User Info"]
-      [:.h-3]])))
+      [:button.btn {:type "submit"} "Update User Info"]])))
 
 (defn update-user [{:keys [session biff/db params] :as req}]
   (let [user-id (:uid session)
@@ -264,6 +263,30 @@
   {:status 303
    :headers {"Location" "/app/user/settings"}})
 
+(defn author-info-form [author]
+  (biff/form
+   {:action "/app/author/update"}
+   (let [{:author/keys [pen-name]} author]
+     [:div
+       [:p "Author Name: "]
+      [:input#pen-name
+       {:name "pen-name"
+        :type "text"
+        :value pen-name
+        :required true}]
+      [:button.btn {:type "submit"} "Update"]])))
+
+(defn update-author [{:keys [session biff/db author params] :as req}]
+  (let [user-id (:uid session)
+        author-id (uid->author db user-id)]
+    (biff/submit-tx req
+                    [{:db/doc-type :author
+                      :db/op merge
+                      :xt/id (:xt/id author-id)
+                      :author/pen-name (:pen-name params)}]))
+  {:status 303
+   :headers {"Location" "/app"}})
+
 (defn app [{:keys [session biff/db] :as req}]
   (let [user-id (:uid session)
         {:user/keys [email username]} (xt/entity db user-id)]
@@ -272,11 +295,10 @@
      nil
      (auth-info email)
      [:.h-3]
-     (str "Your username is: " username)
      (if-some [author (uid->author db user-id)]
        [:div
         [:.h-3]
-        (author-info author)
+        (author-info-form author)
         [:.h-3]
         (new-work-form)
         (let [works (uid->works db user-id)]
@@ -317,7 +339,8 @@
             ["" {:get app}]
             ["/user/settings" {:get user
                                :post update-user}]
-            ["/author" {:post new-author}]
+            ["/author" {:post new-author}
+             ["/update" {:post update-author}]]
             ["/work" {:post new-work}]
             ["/work/:work-id" {:middleware [wrap-work]}
              ["" {:get work

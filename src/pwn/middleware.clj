@@ -6,7 +6,7 @@
   (fn [{:keys [session] :as req}]
     (if (some? (:uid session))
       {:status 303
-       :headers {"location" "/app"}}
+       :headers {"Location" "/app"}}
       (handler req))))
 
 (defn wrap-signed-in [handler]
@@ -14,7 +14,7 @@
     (if (some? (:uid session))
       (handler req)
       {:status 303
-       :headers {"location" "/"}})))
+       :headers {"Location" "/"}})))
 
 (defn wrap-admin [handler]
   (fn [{:keys [session biff/db] :as req}]
