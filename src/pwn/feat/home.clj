@@ -132,7 +132,7 @@
                     [{:db/doc-type :user
                       :db/op :merge
                       :xt/id user-id
-                      :user/followed (conj prev-follows work-id)}]))
+                      :user/followed (set (conj prev-follows work-id))}]))
   {:status 303
    :headers {"Location" (str "/work/" (:xt/id work))}})
 
