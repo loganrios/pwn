@@ -270,7 +270,9 @@
        [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" next-chapter-id)}
         "Next"])
       [:.h-3]
-      (new-comment-form work chapter)
+      (if user
+       (new-comment-form work chapter)
+       nil)
       [:div
        (for [comment-id comments]
          (let [comment (xt/entity db comment-id)]
