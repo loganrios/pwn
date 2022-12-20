@@ -196,16 +196,117 @@
 (defn edit-comment [{:keys [work chapter comment params] :as req}]
   (biff/submit-tx req
                   [{:db/doc-type :comment
-                    :db/op merge
+                    :db/op :merge
                     :xt/id (:xt/id comment)
                     :comment/content (:new-content params)}])
   {:status 303
    :headers {"Location" (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter))}})
 
+(defn reply-comment-form [{:keys [work chapter comment] :as req}]
+   (biff/form
+    {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/reply")}
+    [:div.flex-row.flex-grow.flex.items-center
+      [:textarea#reply-comment
+       {:class "resize-rounded md"
+        :name "reply-content"
+        :wrap "soft"
+        :placeholder "Enter your reply here."}]
+      [:button.btn {:type "submit"} "Submit"]]))
+
+(defn reply-comment [{:keys [session work chapter comment params] :as req}]
+  (let [comment-id (random-uuid)
+        prev-replies (:comment/replies comment)]
+    (biff/submit-tx req
+                    [{:db/doc-type :comment
+                      :xt/id comment-id
+                      :comment/content (:reply-content params)
+                      :comment/timestamp (biff/now)
+                      :comment/owner (:uid session)}
+                     {:db/doc-type :comment
+                      :db/op :merge
+                      :xt/id (:xt/id comment)
+                      :comment/replies (set (conj prev-replies comment-id))}]))
+  {:status 303
+   :headers {"Location" (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter))}})
+
+(defn reply-view [db user admin owner work chapter comment recur-count]
+  (let [comment-owner (:comment/owner comment)]
+    (for [comment-id (:comment/replies comment)]
+      (let [reply (xt/entity db comment-id)
+            {:comment/keys [content timestamp]} reply
+            reply-owner (xt/entity db (:comment/owner reply))]
+        [:div
+         [:.text-sm
+          [:span.font-bold
+           (if (= (:comment/owner reply) owner)
+             [:span.text-blue-600
+              (str "Author - "(:author/pen-name (uid->author db (:comment/owner reply))))]
+             (:user/username reply-owner))]
+          [:span.w-2.inline-block]
+          [:span.text-gray-600 (biff/format-date timestamp "d MMM h:mm aa")]]
+         [:div {:hx-target "this" :hx-swap "outerHTML"}
+          [:div
+            (if (= (:comment/owner comment) owner)
+              (str "@" (:author/pen-name (uid->author db (:comment/owner comment))))
+              (str "@" (:comment/owner comment)))]
+          content
+          (if (= user (:comment/owner reply))
+           [:.text-sm
+            [:a.text-blue-500.hover:text-blue-800 {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id reply) "/reply")
+                                                   :hx-target "closest div"}
+             "Reply"]
+            [:span.w-2.inline-block]
+            [:a.text-blue-500.hover:text-blue-800 {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id reply) "/edit")}
+             "Edit"]
+            [:span.w-2.inline-block]
+            [:span
+             (biff/form
+              {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id reply) "/delete")
+               :class "inline"}
+              [:button.text-blue-500.hover:text-blue-800 {:type "submit"} "Delete"])]]
+           (if (= user owner)
+             [:div
+              [:a.text-blue-500.hover:text-blue-800 {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id reply) "/reply")
+                                                     :hx-target "closest div"}
+               "Reply"]
+              [:span.w-2.inline-block]
+              (biff/form
+               {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id reply) "/delete")
+                :class "inline"}
+               [:button.text-blue-500.hover:text-blue-800 {:type "submit"} "Delete"])]
+             (if admin
+               [:div
+                [:.text-sm
+                 [:a.text-blue-500.hover:text-blue-800 {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id reply) "/reply")
+                                                        :hx-target "closest div"}
+                  "Reply"]]
+                [:span.w-2.inline-block]
+                (biff/form
+                 {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id reply) "/delete")
+                  :class "inline"}
+                 [:button.text-blue-500.hover:text-blue-800 {:type "submit"} "Delete"])]
+               [:.text-sm
+                [:a.text-blue-500.hover:text-blue-800 {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id reply) "/reply")
+                                                       :hx-target "closest div"}
+                 "Reply"]])))]
+         [:div]
+         [:p.whitespace-pre-wrap.mb-6]
+         (if (:comment/replies reply)
+           (let [new-recur-count (inc recur-count)]
+             (format-reply-block db user admin owner work chapter reply new-recur-count))
+           nil)]))))
+
+(defn format-reply-block [db user admin owner work chapter comment recur-count]
+  (if (< recur-count 4)
+    [:div.mx-3
+     (reply-view db user admin owner work chapter comment recur-count)]
+    [:div
+     (reply-view db user admin owner work chapter comment recur-count)]))
+
 (defn comment-view [db user admin owner work chapter]
     (for [comment-id (:chapter/comments chapter)]
       (let [comment (xt/entity db comment-id)
-            {:comment/keys [content timestamp replies]} comment
+            {:comment/keys [content timestamp]} comment
             comment-owner (xt/entity db (:comment/owner comment))]
         [:div
          [:.text-sm
@@ -220,6 +321,10 @@
           content
           (if (= user (:comment/owner comment))
            [:.text-sm
+            [:a.text-blue-500.hover:text-blue-800 {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/reply")
+                                                   :hx-target "closest div"}
+             "Reply"]
+            [:span.w-2.inline-block]
             [:a.text-blue-500.hover:text-blue-800 {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/edit")}
              "Edit"]
             [:span.w-2.inline-block]
@@ -230,18 +335,32 @@
               [:button.text-blue-500.hover:text-blue-800 {:type "submit"} "Delete"])]]
            (if (= user owner)
              [:div
+              [:a.text-blue-500.hover:text-blue-800 {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/reply")
+                                                     :hx-target "closest div"}
+               "Reply"]
+              [:span.w-2.inline-block]
               (biff/form
                {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/delete")
                 :class "inline"}
                [:button.text-blue-500.hover:text-blue-800 {:type "submit"} "Delete"])]
              (if admin
                [:div
+                [:.text-sm
+                 [:a.text-blue-500.hover:text-blue-800 {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/reply")
+                                                        :hx-target "closest div"}
+                  "Reply"]]
+                [:span.w-2.inline-block]
                 (biff/form
                  {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/delete")
                   :class "inline"}
                  [:button.text-blue-500.hover:text-blue-800 {:type "submit"} "Delete"])]
-               nil)))]
-         [:p.whitespace-pre-wrap.mb-6]])))
+               [:.text-sm
+                [:a.text-blue-500.hover:text-blue-800 {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/reply")
+                                                       :hx-target "closest div"}
+                 "Reply"]])))]
+         [:div]
+         [:p.whitespace-pre-wrap.mb-6]
+         (reply-block db user admin owner work chapter comment 0)])))
 
 (defn home [sys]
   (ui/page
@@ -328,7 +447,7 @@
        (new-comment-form work chapter)
        nil)
       [:.h-3]
-      (comment-view db user admin owner work chapter)]
+      (comment-block db user admin owner work chapter)]
      [:div
       (when (not (nil? previous-chapter-id))
        [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" previous-chapter-id)}
@@ -437,6 +556,8 @@
               ["/comment/:comment-id" {:middleware [wrap-comment]}
                ["/edit" {:get edit-comment-form
                          :post edit-comment}]
+               ["/reply" {:get reply-comment-form
+                          :post reply-comment}]
                ["/delete" {:post delete-comment}]]]]
             ["/genre" {:get genre-home}]
             ["/genre/:genre-id" {:middleware [wrap-genre]}
