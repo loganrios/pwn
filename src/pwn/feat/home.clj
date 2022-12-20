@@ -153,11 +153,13 @@
   (biff/form
    {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/new-comment")}
    [:div "Add a comment"]
-   [:input#comment
-    {:name "comment"
-     :type "text"
-     :placeholder "Enter comment text here"}]
-   [:button.btn {:type "submit"} "Post"]))
+   [:div.flex-row.flex-grow.flex.items-center
+    [:textarea#comment
+     {:class "resize-rounded md"
+      :name "comment"
+      :wrap "soft"
+      :placeholder "Enter comment text here"}]
+    [:button.btn {:type "submit"} "Post"]]))
 
 (defn new-comment [{:keys [session work chapter params] :as req}]
   (let [comment-id (random-uuid)]
@@ -183,11 +185,13 @@
   (let [{:comment/keys [content]} comment]
    (biff/form
     {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/edit")}
-    [:input#edit-comment
-     {:name "new-content"
-      :type "text"
-      :value content}]
-    [:button.btn {:type "submit"} "Submit"])))
+    [:div.flex-row.flex-grow.flex.items-center
+      [:textarea#edit-comment
+       {:class "resize-rounded md"
+        :name "new-content"
+        :wrap "soft"}
+       content]
+      [:button.btn {:type "submit"} "Submit"]])))
 
 (defn edit-comment [{:keys [work chapter comment params] :as req}]
   (biff/submit-tx req
@@ -197,14 +201,6 @@
                     :comment/content (:new-content params)}])
   {:status 303
    :headers {"Location" (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter))}})
-
-(defn home [sys]
-  (ui/page
-   {:base/head (when (util/email-signin-enabled? sys)
-                 recaptcha-scripts)}
-   (when-not (get-in sys [:session :uid])
-     [:div (signin-form sys) [:.h-3]])
-   (works-list (:biff/db sys) (get-all-works sys))))
 
 (defn comment-view [db user admin owner work chapter]
     (for [comment-id (:chapter/comments chapter)]
@@ -246,6 +242,14 @@
                  [:button.text-blue-500.hover:text-blue-800 {:type "submit"} "Delete"])]
                nil)))]
          [:p.whitespace-pre-wrap.mb-6]])))
+
+(defn home [sys]
+  (ui/page
+   {:base/head (when (util/email-signin-enabled? sys)
+                 recaptcha-scripts)}
+   (when-not (get-in sys [:session :uid])
+     [:div (signin-form sys) [:.h-3]])
+   (works-list (:biff/db sys) (get-all-works sys))))
 
 (defn work [{:keys [session biff/db work] :as sys}]
   (ui/page
