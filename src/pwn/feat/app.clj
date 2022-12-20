@@ -300,6 +300,8 @@
         [:.h-3]
         (author-info-form author)
         [:.h-3]
+        [:a.btn {:href "/app/sponsee"} "Sponsorship Dashboard"]
+        [:.h-3]
         (new-work-form)
         (let [works (uid->works db user-id)]
           (works-list db works))

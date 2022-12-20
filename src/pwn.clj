@@ -4,6 +4,7 @@
             [pwn.feat.auth :as auth]
             [pwn.feat.admin :as admin]
             [pwn.feat.home :as home]
+            [pwn.feat.sponsor :as sponsor]
             [pwn.feat.worker :as worker]
             [pwn.schema :refer [malli-opts]]
             [clojure.java.io :as io]
@@ -18,6 +19,7 @@
    auth/features
    admin/features
    home/features
+   sponsor/features
    worker/features])
 
 (def routes [["" {:middleware [anti-forgery/wrap-anti-forgery
