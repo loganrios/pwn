@@ -23,18 +23,24 @@
    body))
 
 (defn topbar [sys]
-  (let [uid (get-in sys [:session :uid])
-        items [:div.container.flex.flex-wrap.items-center.justify-between.mx-auto
-               [:a.text-blue-500.text-xl.font-semibold {:href "/"} "Project Web Novel"]
-               [:a.text-blue-500 {:href "/genre"} "Genres"]]
-        logged-in [[:a.text-blue-500 {:href "/user/followed"} "Followed"]
-                   [:a.text-blue-500 {:href "/app"} "Dashboard"]
-                   [:a.text-blue-500 {:href "/app/user/settings"} "Settings"]]
-        logged-out [[:a.text-blue-500 {:href "/auth/signin"} "Sign in"]]]
+  (let [uid (get-in sys [:session :uid])]
     [:nav#nav
-     (apply conj items (if uid logged-in logged-out))
+     [:div.container.flex.flex-wrap.items-center.justify-between.mx-auto
+      [:a.text-blue-500.text-xl.font-semibold {:href "/"} "Project Web Novel"]
+      [:a.text-blue-500 {:href "/genre"} "Genres"]
+      (if uid
+        [:a.text-blue-500 {:_ (str "on click toggle @hidden on #profile-nav")} "Me ▼"]
+        [:a.text-blue-500 {:href "/auth/signin"} "Register/Login"])]
+     [:div#profile-nav
+      {:hidden true}
+      [:.h-3]
+      [:div.container.flex.flex-wrap.items-center.justify-between.mx-auto.bg-slate-100.rounded-md.p-2
+       [:a.text-blue-500 {:href "/user/followed"} "Followed"]
+       [:a.text-blue-500 {:href "/app"} "Dashboard"]
+       [:a.text-blue-500 {:href "/app/user/settings"} "Settings"]
+       (biff/form {:action "/auth/signout" :class "inline"}
+                  [:button.text-blue-500 {:type "submit"} "Sign out"])]]
      [:.h-5]]))
-
 
 (defn page [opts & body]
   (base
