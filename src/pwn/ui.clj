@@ -43,9 +43,21 @@
                   [:button.text-blue-500 {:type "submit"} "Sign out"])]]
      [:.h-5]]))
 
+(def footer
+  (let [yr (biff/format-date (biff/now) "yyyy")]
+    [:footer.flex.flex-col.justify-center.items-center.text-xs
+     [:.h-6]
+     [:div.text-xs.text-gray-500 "Project Web Novel © " yr " Keionsoft Consulting, LLC."]
+     [:.h-3]
+     [:div.flex.flex-row.justify-center.items-center
+      [:div.px-2 [:a.text-blue-500 {:href "mailto:pwn@keionsoft.com"} "Contact Us"]]
+      [:div.px-2 [:a.text-blue-500 {:href "https://github.com/loganrios/pwn"} "Source Code"]]
+      [:div.px-2 [:a.text-blue-500 {:href "https://keionsoft.com"} "Parent Company"]]]]))
+
 (defn page [opts & body]
   (base
    opts
    [:.p-3.mx-auto.max-w-screen-sm.w-full
     (topbar opts)
-    body]))
+    body
+    footer]))

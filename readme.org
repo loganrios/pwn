@@ -1,36 +1,38 @@
 #+title: PWN Redux
 
-A web fiction platform for authors and readers, built with [[https://biffweb.com][Biff]]. PWN is not ready for general use yet. When it is, the primary instance will be hosted at [[https://projectwebnovel.com][Project Web Novel]].
+A web fiction platform for authors and readers, built with [[https://biffweb.com][Biff]] and hosted at [[https://projectwebnovel.com][Project Web Novel]].
+
+* Open-Source Disclaimer
+While PWN's source code is publicly available, please note that this is for the purposes of transparency with our user community--not necessarily to encourage others to host their own instance of this application. You can certainly attempt to do so, but please note that this is not a use case that will be documented or explicitly supported.
+
+That being said, PWN is explicitly Free (Libre) Software, and you have the right to do with this source code as you please, so long as the stipulations of the AGPL-3.0 License are properly observed.
 
 * Getting started
 ** Prerequisites
 For development, PWN requires Java, Clojure, and Babashka to be installed on the host machine. You must also have a =config.edn= file in the project root that looks something like this:
 
 #+begin_src clojure
-;; vim: ft=clojure
-{:prod {:biff.xtdb/dir "storage/xtdb"
-        :biff.xtdb/topology :standalone
-        :biff/base-url "https://example.com"
-        :postmark/api-key nil
-        :postmark/from "hello@example.com"
-        :recaptcha/site-key nil
-        :recaptcha/secret-key nil
-        :biff.middleware/cookie-secret <your-cookie-secret>
-        :biff/jwt-secret <your-jwt-secret>}
+{:prod {} ;; all production keys go here
  :dev {:merge [:prod]
        :pwn/enable-beholder true
+
+       :postmark/api-key nil
+       :stripe/api-key ""
+       :recaptcha/site-key nil
+       :recaptcha/secret-key nil
+
        :biff/host "0.0.0.0"
        :biff/port 8080
        :biff/base-url "http://localhost:8080"
+       :biff.xtdb/dir "storage/xtdb"
        :biff.xtdb/topology :standalone
        :biff.middleware/secure false}
  :tasks {:biff.tasks/tailwind-build nil
          :biff.tasks/main-ns pwn
          :biff.tasks/soft-deploy-fn pwn/on-save
-         :biff.tasks/deploy-from "master"
+         :biff.tasks/deploy-from "trunk"
          :biff.tasks/deploy-to "prod"
-         :biff.tasks/server "example.com"}}
-
+         :biff.tasks/server "<your-domain-name>"}}
 #+end_src
 
 ** Running in Development

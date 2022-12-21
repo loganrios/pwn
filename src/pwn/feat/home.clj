@@ -312,9 +312,12 @@
        [:div.mx-3
         (reply-view db user admin owner work chapter comment 0)]])))
 
-(defn home [sys]
+(defn home [{:keys [biff/db] :as sys}]
   (ui/page
    sys
+   (if-let [uid (get-in sys [:session :uid])]
+     [:div "Welcome back, " (:user/username (biff/lookup db :xt/id uid)) "!"]
+     [:div (biff/unsafe (slurp "resources/introduction.html"))])
    (works-list (:biff/db sys) (get-all-works sys))))
 
 (defn work [{:keys [session biff/db work] :as sys}]
