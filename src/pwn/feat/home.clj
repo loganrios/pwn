@@ -236,11 +236,13 @@
                 {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id reply) "/delete")
                  :class "inline"}
                 [:button.link {:type "submit"} "Delete"])]
-              [:.text-sm
-               [:a.link {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id reply) "/reply")
-                         :hx-target "closest div"}
-                "Reply"]])))]
-       [:div]
+              (if user
+                [:.text-sm
+                 [:a.link {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/reply")
+                           :hx-target "closest div"}
+                  "Reply"]]
+                nil))))]
+       [:div#reply]
        [:p.whitespace-pre-wrap.mb-6]
        (if (:comment/replies reply)
          (let [new-recur-count (inc recur-count)]
@@ -302,11 +304,13 @@
                 {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/delete")
                  :class "inline"}
                 [:button.link {:type "submit"} "Delete"])]
-              [:.text-sm
-               [:a.link {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/reply")
-                         :hx-target "closest div"}
-                "Reply"]])))]
-       [:div]
+              (if user
+                [:.text-sm
+                 [:a.link {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/reply")
+                           :hx-target "closest div"}
+                  "Reply"]]
+                nil))))]
+       [:div#reply]
        [:p.whitespace-pre-wrap.mb-6]
        [:div.mx-3
         (reply-view db user admin owner work chapter comment 0)]])))
