@@ -7,19 +7,12 @@
                                        uid->works
                                        get-all-genres
                                        follower-count]]
-            [rum.core :as rum]
-            [xtdb.api :as xt]
-            [ring.adapter.jetty9 :as jetty]
-            [cheshire.core :as cheshire]
-            [clojure.string :as str]))
+            [xtdb.api :as xt]))
 
 (defn auth-info [email]
   [:div "Signed in as " email ". "
-   (biff/form
-    {:action "/auth/signout"
-     :class "inline"}
-    [:button.text-blue-500.hover:text-blue-800 {:type "submit"}
-     "Sign out."])])
+   (biff/form {:action "/auth/signout" :class "inline"}
+              [:button.text-blue-500 {:type "submit"} "Sign out."])])
 
 (defn author-info [author]
   [:div (str "Your pen name is: " (:author/pen-name author))
@@ -234,35 +227,6 @@
    [:h-3]
    [:button.btn {:type "submit"} "Update Work Info"]))
 
-(defn user-info-form [user]
-  (biff/form
-   {:action "/dash/user/settings"}
-   (let [{:user/keys [email username joined-at]} user]
-     [:div
-      [:div (str "Email: " email)]
-      [:.h-1]
-      [:p "Username: "]
-      [:input#username
-       {:name "username"
-        :type "text"
-        :value username
-        :required true}]
-      [:.h-1]
-      [:div (str "Joined: " (biff/format-date joined-at "d MMM YYYY"))]
-      [:.h-1]
-      [:button.btn {:type "submit"} "Update User Info"]])))
-
-(defn update-user [{:keys [session biff/db params] :as req}]
-  (let [user-id (:uid session)
-        user (xt/entity db user-id)]
-    (biff/submit-tx req
-                    [{:db/doc-type :user
-                      :db/op merge
-                      :xt/id (:xt/id user)
-                      :user/username (:username params)}]))
-  {:status 303
-   :headers {"Location" "/dash/user/settings"}})
-
 (defn author-info-form [author]
   (biff/form
    {:action "/dash/author/update"}
@@ -292,29 +256,23 @@
         {:user/keys [email username]} (xt/entity db user-id)]
     (ui/page
      sys
-     nil
      (auth-info email)
      [:.h-3]
      (if-some [author (uid->author db user-id)]
        [:div
         [:.h-3]
+        [:h1.text-lg.font-semibold "Author Info"]
         (author-info-form author)
-        [:.h-3]
+        [:.h-6]
         [:a.btn {:href "/dash/sponsee"} "Sponsorship Dashboard"]
-        [:.h-3]
+        [:.h-6]
+        [:h1.text-lg.font-semibold "Manage Works"]
         (new-work-form)
+        [:.h-6]
         (let [works (uid->works db user-id)]
           (works-list db works))
         [:.h-5]]
        (become-author-form)))))
-
-(defn user [{:keys [session biff/db] :as sys}]
-  (let [user-id (:uid session)
-        user (xt/entity db user-id)]
-    (ui/page
-     sys
-     [:div
-      (user-info-form user)])))
 
 (defn work [{:keys [biff/db work owner] :as sys}]
   (ui/page
@@ -340,8 +298,6 @@
 (def features
   {:routes ["/dash" {:middleware [mid/wrap-signed-in]}
             ["" {:get dash}]
-            ["/user/settings" {:get user
-                               :post update-user}]
             ["/author"
              ["" {:post new-author}]
              ["/update" {:post update-author}]]

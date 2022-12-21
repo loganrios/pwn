@@ -1,6 +1,7 @@
 (ns pwn
   (:require [com.biffweb :as biff]
             [pwn.feat.dash :as dash]
+            [pwn.feat.settings :as settings]
             [pwn.feat.auth :as auth]
             [pwn.feat.admin :as admin]
             [pwn.feat.home :as home]
@@ -16,6 +17,7 @@
 
 (def features
   [dash/features
+   settings/features
    auth/features
    admin/features
    home/features
