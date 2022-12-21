@@ -26,21 +26,21 @@
   (let [uid (get-in sys [:session :uid])]
     [:nav#nav
      [:div.container.flex.flex-wrap.items-center.justify-between.mx-auto
-      [:a.text-orange-500.text-xl.font-semibold {:href "/"} "Project Web Novel"]
-      [:a.text-orange-500 {:href "/genre"} "Genres"]
+      [:a.link.text-xl.font-semibold {:href "/"} "Project Web Novel"]
+      [:a.link {:href "/genre"} "Genres"]
       (if uid
-        [:a.text-orange-500.cursor-pointer
+        [:a.link.cursor-pointer
          {:_ (str "on click toggle @hidden on #profile-nav")} "Me ▼"]
-        [:a.text-orange-500 {:href "/auth/signin"} "Register/Login"])]
+        [:a.link {:href "/auth/signin"} "Register/Login"])]
      [:div#profile-nav
       {:hidden true}
       [:.h-3]
       [:div.container.flex.flex-wrap.items-center.justify-between.mx-auto.bg-gray-50.rounded-md.p-2
-       [:a.text-orange-500 {:href "/user/followed"} "Followed"]
-       [:a.text-orange-500 {:href "/dash"} "Dashboard"]
-       [:a.text-orange-500 {:href "/user/settings"} "Settings"]
+       [:a.link {:href "/user/followed"} "Followed"]
+       [:a.link {:href "/dash"} "Dashboard"]
+       [:a.link {:href "/user/settings"} "Settings"]
        (biff/form {:action "/auth/signout" :class "inline"}
-                  [:button.text-orange-500 {:type "submit"} "Sign out"])]]
+                  [:button.link {:type "submit"} "Sign out"])]]
      [:.h-5]]))
 
 (def footer
@@ -50,9 +50,9 @@
      [:div.text-xs.text-gray-500 "Project Web Novel © " yr " Keionsoft Consulting, LLC."]
      [:.h-3]
      [:div.flex.flex-row.justify-center.items-center
-      [:div.px-2 [:a.text-orange-500 {:href "mailto:pwn@keionsoft.com"} "Contact Us"]]
-      [:div.px-2 [:a.text-orange-500 {:href "https://github.com/loganrios/pwn"} "Source Code"]]
-      [:div.px-2 [:a.text-orange-500 {:href "https://keionsoft.com"} "Parent Company"]]]]))
+      [:div.px-2 [:a.link {:href "mailto:pwn@keionsoft.com"} "Contact Us"]]
+      [:div.px-2 [:a.link {:href "https://github.com/loganrios/pwn"} "Source Code"]]
+      [:div.px-2 [:a.link {:href "https://keionsoft.com"} "Parent Company"]]]]))
 
 (defn page [opts & body]
   (base

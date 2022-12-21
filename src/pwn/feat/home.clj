@@ -42,11 +42,11 @@
   (for [work works]
     (let [{:work/keys [owner primary-genre secondary-genre blurb]} work]
       [:div
-       [:a.text-orange-500.hover:text-orange-800 {:href (str "/work/" (:xt/id work))}
+       [:a.link {:href (str "/work/" (:xt/id work))}
         (:work/title work)]
        " | By: "
        (let [{:keys [xt/id author/pen-name]} (uid->author db owner)]
-         [:a.text-orange-500.hover:text-orange-800 {:href (str "/author/" id)}
+         [:a.link {:href (str "/author/" id)}
           pen-name])
        [:div
         (if (= primary-genre secondary-genre)
@@ -60,7 +60,7 @@
   (if (seq chapters)
     (for [chapter (map #(xt/entity db %) chapters)]
       [:div
-       [:a.text-orange-500.hover:text-orange-800 {:href (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter))}
+       [:a.link {:href (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter))}
         (:chapter/title chapter)]
        " | "
        [:span.text-gray-600 (biff/format-date (:chapter/created-at chapter) "d MMM H:mm aa")]])
@@ -204,42 +204,42 @@
         content
         (if (= user (:comment/owner reply))
           [:.text-sm
-           [:a.text-orange-500.hover:text-orange-800 {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id reply) "/reply")
-                                                      :hx-target "closest div"}
+           [:a.link {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id reply) "/reply")
+                     :hx-target "closest div"}
             "Reply"]
            [:span.w-2.inline-block]
-           [:a.text-orange-500.hover:text-orange-800 {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id reply) "/edit")}
+           [:a.link {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id reply) "/edit")}
             "Edit"]
            [:span.w-2.inline-block]
            [:span
             (biff/form
              {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id reply) "/delete")
               :class "inline"}
-             [:button.text-orange-500.hover:text-orange-800 {:type "submit"} "Delete"])]]
+             [:button.link {:type "submit"} "Delete"])]]
           (if (= user owner)
             [:div
-             [:a.text-orange-500.hover:text-orange-800 {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id reply) "/reply")
-                                                        :hx-target "closest div"}
+             [:a.link {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id reply) "/reply")
+                       :hx-target "closest div"}
               "Reply"]
              [:span.w-2.inline-block]
              (biff/form
               {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id reply) "/delete")
                :class "inline"}
-              [:button.text-orange-500.hover:text-orange-800 {:type "submit"} "Delete"])]
+              [:button.link {:type "submit"} "Delete"])]
             (if admin
               [:div
                [:.text-sm
-                [:a.text-orange-500.hover:text-orange-800 {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id reply) "/reply")
-                                                           :hx-target "closest div"}
+                [:a.link {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id reply) "/reply")
+                          :hx-target "closest div"}
                  "Reply"]]
                [:span.w-2.inline-block]
                (biff/form
                 {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id reply) "/delete")
                  :class "inline"}
-                [:button.text-orange-500.hover:text-orange-800 {:type "submit"} "Delete"])]
+                [:button.link {:type "submit"} "Delete"])]
               [:.text-sm
-               [:a.text-orange-500.hover:text-orange-800 {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id reply) "/reply")
-                                                          :hx-target "closest div"}
+               [:a.link {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id reply) "/reply")
+                         :hx-target "closest div"}
                 "Reply"]])))]
        [:div]
        [:p.whitespace-pre-wrap.mb-6]
@@ -270,42 +270,42 @@
         content
         (if (= user (:comment/owner comment))
           [:.text-sm
-           [:a.text-orange-500.hover:text-orange-800 {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/reply")
-                                                      :hx-target "closest div"}
+           [:a.link {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/reply")
+                     :hx-target "closest div"}
             "Reply"]
            [:span.w-2.inline-block]
-           [:a.text-orange-500.hover:text-orange-800 {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/edit")}
+           [:a.link {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/edit")}
             "Edit"]
            [:span.w-2.inline-block]
            [:span
             (biff/form
              {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/delete")
               :class "inline"}
-             [:button.text-orange-500.hover:text-orange-800 {:type "submit"} "Delete"])]]
+             [:button.link {:type "submit"} "Delete"])]]
           (if (= user owner)
             [:div
-             [:a.text-orange-500.hover:text-orange-800 {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/reply")
-                                                        :hx-target "closest div"}
+             [:a.link {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/reply")
+                       :hx-target "closest div"}
               "Reply"]
              [:span.w-2.inline-block]
              (biff/form
               {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/delete")
                :class "inline"}
-              [:button.text-orange-500.hover:text-orange-800 {:type "submit"} "Delete"])]
+              [:button.link {:type "submit"} "Delete"])]
             (if admin
               [:div
                [:.text-sm
-                [:a.text-orange-500.hover:text-orange-800 {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/reply")
-                                                           :hx-target "closest div"}
+                [:a.link {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/reply")
+                          :hx-target "closest div"}
                  "Reply"]]
                [:span.w-2.inline-block]
                (biff/form
                 {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/delete")
                  :class "inline"}
-                [:button.text-orange-500.hover:text-orange-800 {:type "submit"} "Delete"])]
+                [:button.link {:type "submit"} "Delete"])]
               [:.text-sm
-               [:a.text-orange-500.hover:text-orange-800 {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/reply")
-                                                          :hx-target "closest div"}
+               [:a.link {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/reply")
+                         :hx-target "closest div"}
                 "Reply"]])))]
        [:div]
        [:p.whitespace-pre-wrap.mb-6]
@@ -422,7 +422,7 @@
         (let [work-map (first work)
               {:work/keys [title primary-genre secondary-genre blurb]} work-map]
           [:div
-           [:a.text-orange-500.hover:text-orange-800 {:href (str "/work/" (:xt/id work-map))}
+           [:a.link {:href (str "/work/" (:xt/id work-map))}
             title]
            [:div
             (if (= primary-genre secondary-genre)
@@ -449,7 +449,7 @@
          [:.h-1]
          [:div
           (for [genre genre-list]
-            [:div [:a.text-orange-500.hover:text-orange-800 {:href (str "/genre/" (name (:xt/id genre)))}
+            [:div [:a.link {:href (str "/genre/" (name (:xt/id genre)))}
                    (:genre/display-name genre)]])]]
         [:div "There are currently no genres to choose from."])])))
 
@@ -467,11 +467,11 @@
            (let [work (xt/entity db (first work-id))
                  {:work/keys [title owner blurb primary-genre secondary-genre]} work]
              [:div
-              [:a.text-orange-500.hover:text-orange-800 {:href (str "/work/" (:xt/id work))}
+              [:a.link {:href (str "/work/" (:xt/id work))}
                (str title)]
               " | By: "
               (let [{:keys [:xt/id author/pen-name]} (uid->author db owner)]
-                [:a.text-orange-500.hover:text-orange-800 {:href (str "/author/" id)}
+                [:a.link {:href (str "/author/" id)}
                  pen-name])
               [:div (if (= primary-genre secondary-genre)
                       [:div (genreid->name db primary-genre)]
@@ -487,7 +487,7 @@
      [:div (if (seq followed)
              (for [work (map #(xt/entity db %) followed)]
                [:div
-                [:a.text-orange-500.hover:text-orange-800 {:href (str "/work/" (:xt/id work))}
+                [:a.link {:href (str "/work/" (:xt/id work))}
                  (:work/title work)]
                 [:.h-1]
                 (chapters-list db work (:work/chapters work))
