@@ -26,7 +26,9 @@
   (let [uid (get-in sys [:session :uid])]
     [:nav#nav
      [:div.container.flex.flex-wrap.items-center.justify-between.mx-auto
-      [:a.link.text-xl.font-semibold {:href "/"} "Project Web Novel"]
+      [:div.flex.flex-row.items-center
+       [:a.link.text-xl.font-semibold {:href "/"} "Project Web Novel"]
+       [:img.w-10.mx-2 {:src "/img/logo.svg"}]]
       [:a.link {:href "/genre"} "Genres"]
       (if uid
         [:a.link.cursor-pointer
