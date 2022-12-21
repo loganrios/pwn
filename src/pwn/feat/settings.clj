@@ -24,7 +24,7 @@
 (defn auth-info [email]
   [:div "Signed in as " email ". "
    (biff/form {:action "/auth/signout" :class "inline"}
-              [:button.text-blue-500 {:type "submit"} "Sign out."])])
+              [:button.text-orange-500 {:type "submit"} "Sign out."])])
 
 (defn user [{:keys [session biff/db] :as sys}]
   (let [user-id (:uid session)

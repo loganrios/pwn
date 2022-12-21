@@ -26,21 +26,21 @@
   (let [uid (get-in sys [:session :uid])]
     [:nav#nav
      [:div.container.flex.flex-wrap.items-center.justify-between.mx-auto
-      [:a.text-blue-500.text-xl.font-semibold {:href "/"} "Project Web Novel"]
-      [:a.text-blue-500 {:href "/genre"} "Genres"]
+      [:a.text-orange-500.text-xl.font-semibold {:href "/"} "Project Web Novel"]
+      [:a.text-orange-500 {:href "/genre"} "Genres"]
       (if uid
-        [:a.text-blue-500.cursor-pointer
+        [:a.text-orange-500.cursor-pointer
          {:_ (str "on click toggle @hidden on #profile-nav")} "Me ▼"]
-        [:a.text-blue-500 {:href "/auth/signin"} "Register/Login"])]
+        [:a.text-orange-500 {:href "/auth/signin"} "Register/Login"])]
      [:div#profile-nav
       {:hidden true}
       [:.h-3]
-      [:div.container.flex.flex-wrap.items-center.justify-between.mx-auto.bg-slate-100.rounded-md.p-2
-       [:a.text-blue-500 {:href "/user/followed"} "Followed"]
-       [:a.text-blue-500 {:href "/dash"} "Dashboard"]
-       [:a.text-blue-500 {:href "/user/settings"} "Settings"]
+      [:div.container.flex.flex-wrap.items-center.justify-between.mx-auto.bg-gray-50.rounded-md.p-2
+       [:a.text-orange-500 {:href "/user/followed"} "Followed"]
+       [:a.text-orange-500 {:href "/dash"} "Dashboard"]
+       [:a.text-orange-500 {:href "/user/settings"} "Settings"]
        (biff/form {:action "/auth/signout" :class "inline"}
-                  [:button.text-blue-500 {:type "submit"} "Sign out"])]]
+                  [:button.text-orange-500 {:type "submit"} "Sign out"])]]
      [:.h-5]]))
 
 (def footer
@@ -50,9 +50,9 @@
      [:div.text-xs.text-gray-500 "Project Web Novel © " yr " Keionsoft Consulting, LLC."]
      [:.h-3]
      [:div.flex.flex-row.justify-center.items-center
-      [:div.px-2 [:a.text-blue-500 {:href "mailto:pwn@keionsoft.com"} "Contact Us"]]
-      [:div.px-2 [:a.text-blue-500 {:href "https://github.com/loganrios/pwn"} "Source Code"]]
-      [:div.px-2 [:a.text-blue-500 {:href "https://keionsoft.com"} "Parent Company"]]]]))
+      [:div.px-2 [:a.text-orange-500 {:href "mailto:pwn@keionsoft.com"} "Contact Us"]]
+      [:div.px-2 [:a.text-orange-500 {:href "https://github.com/loganrios/pwn"} "Source Code"]]
+      [:div.px-2 [:a.text-orange-500 {:href "https://keionsoft.com"} "Parent Company"]]]]))
 
 (defn page [opts & body]
   (base

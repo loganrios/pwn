@@ -12,7 +12,7 @@
 (defn auth-info [email]
   [:div "Signed in as " email ". "
    (biff/form {:action "/auth/signout" :class "inline"}
-              [:button.text-blue-500 {:type "submit"} "Sign out."])])
+              [:button.text-orange-500 {:type "submit"} "Sign out."])])
 
 (defn author-info [author]
   [:div (str "Your pen name is: " (:author/pen-name author))
@@ -56,7 +56,7 @@
       (for [work works]
         (let [work-map (first work)]
           [:div
-           [:a.text-blue-500.hover:text-blue-800 {:href (str "/dash/work/" (:xt/id work-map))}
+           [:a.text-orange-500.hover:text-orange-800 {:href (str "/dash/work/" (:xt/id work-map))}
             (:work/title work-map)]
            " | "
            (str "Followers: " (follower-count db (:xt/id work-map)))
@@ -64,14 +64,14 @@
            (biff/form
             {:action (str "/dash/work/" (:xt/id work-map) "/delete")
              :class "inline"}
-            [:button.text-blue-500.hover:text-blue-800 {:type "submit"} "Delete"])]))]]
+            [:button.text-orange-500.hover:text-orange-800 {:type "submit"} "Delete"])]))]]
     [:div "You have no works."]))
 
 (defn chapters-list [db work chapters]
   (if (seq chapters)
     (for [chapter (map #(xt/entity db %) chapters)]
       [:div
-       [:a.text-blue-500.hover:text-blue-800 {:href (str "/dash/work/" (:xt/id work) "/chapter/" (:xt/id chapter))}
+       [:a.text-orange-500.hover:text-orange-800 {:href (str "/dash/work/" (:xt/id work) "/chapter/" (:xt/id chapter))}
         (:chapter/title chapter)]
        " | "
        [:span.text-gray-600 (biff/format-date (:chapter/created-at chapter) "d MMM H:mm aa")]
@@ -79,7 +79,7 @@
        (biff/form
         {:action (str "/dash/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/delete")
          :class "inline"}
-        [:button.text-blue-500.hover:text-blue-800 {:type "submit"} "Delete"])])
+        [:button.text-orange-500.hover:text-orange-800 {:type "submit"} "Delete"])])
     [:div "You have no chapters."]))
 
 (defn new-author [{:keys [params session] :as req}]
