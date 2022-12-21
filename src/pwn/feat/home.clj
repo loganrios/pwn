@@ -456,7 +456,7 @@
       [:div description]
       [:.h-3]
       [:div
-       (let [works-list (get-works-by-genre db (name (:xt/id genre)))]
+       (let [works-list (get-works-by-genre db (:xt/id genre))]
          (for [work-id works-list]
            (let [work (xt/entity db (first work-id))
                  {:work/keys [title owner blurb primary-genre secondary-genre]} work]

@@ -124,12 +124,13 @@
 
 (defn update-work [{:keys [work params] :as req}]
   (biff/submit-tx req
-                  [[::xt/put
-                    (assoc work
-                           :work/title (:title params)
-                           :work/blurb (:blurb params)
-                           :work/primary-genre (:primary-genre params)
-                           :work/secondary-genre (:secondary-genre params))]])
+                    [{:db/doc-type :work
+                      :db/op :merge
+                      :xt/id (:xt/id work)
+                      :work/title (:title params)
+                      :work/blurb (:blurb params)
+                      :work/primary-genre (keyword (:primary-genre params))
+                      :work/secondary-genre (keyword (:secondary-genre params))}])
   {:status 303
    :headers {"Location" (str "/dash/work/" (:xt/id work))}})
 

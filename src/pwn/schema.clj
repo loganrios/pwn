@@ -18,8 +18,6 @@
            [:admin/promoted-by {:optional true} :admin/id]]
 
    :author/id :uuid
-   :author/pen-name :string
-   :author/user :user/id
    :author [:map {:closed true}
             [:xt/id :author/id]
             [:author/user :user/id]
