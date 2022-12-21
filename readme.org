@@ -5,7 +5,7 @@ A web fiction platform for authors and readers, built with [[https://biffweb.com
 * Open-Source Disclaimer
 While PWN's source code is publicly available, please note that this is for the purposes of transparency with our user community--not necessarily to encourage others to host their own instance of this application. You can certainly attempt to do so, but please note that this is not a use case that will be documented or explicitly supported.
 
-That being said, PWN is explicitly Free (Libre) Software, and you have the right to do with this source code as you please, so long as the stipulations of the AGPL-3.0 License are properly observed.
+That being said, PWN is released as Free (Libre) Software, and you have the right to do with this source code as you please, so long as the stipulations of the AGPL-3.0 License are properly observed.
 
 * Getting started
 ** Prerequisites
