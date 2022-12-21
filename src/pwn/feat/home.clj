@@ -373,47 +373,47 @@
          current-ch-index (get-chapter-index chapters (:xt/id chapter))
          previous-chapter-id (get-prev-ch-id (:work/chapters work) current-ch-index)
          next-chapter-id (get-next-ch-id (:work/chapters work) current-ch-index)]
-     (if (seq content)
-       [:div
-        [:div title]
-        [:.h-3]
-        (when (not (nil? previous-chapter-id))
-          [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" previous-chapter-id)}
-           "Previous"])
-        [:a.btn {:href (str "/work/" (:xt/id work))}
-         "Work Home"]
-        (when (not (nil? next-chapter-id))
-          [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" next-chapter-id)}
-           "Next"])
-        [:.h-3]
-        [:div
-         (biff/unsafe content)]
-        [:.h-3]
-        (when (not (nil? previous-chapter-id))
-          [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" previous-chapter-id)}
-           "Previous"])
-        [:a.btn {:href (str "/work/" (:xt/id work))}
-         "Work Home"]
-        (when (not (nil? next-chapter-id))
-          [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" next-chapter-id)}
-           "Next"])
-        [:.h-3]
-        (if user
-          (new-comment-form work chapter)
-          nil)
-        [:.h-3]
-        (comment-block db user admin owner work chapter)]
-       [:div
-        (when (not (nil? previous-chapter-id))
-          [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" previous-chapter-id)}
-           "Previous"])
-        [:a.btn {:href (str "/work/" (:xt/id work))}
-         "Work Home"]
-        (when (not (nil? next-chapter-id))
-          [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" next-chapter-id)}
-           "Next"])
-        [:.h-3]
-        "This chapter has no content."]))))
+    (if (seq content)
+     [:div
+      [:div title]
+      [:.h-3]
+      (when (not (nil? previous-chapter-id))
+       [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" previous-chapter-id)}
+        "Previous"])
+      [:a.btn {:href (str "/work/" (:xt/id work))}
+       "Work Home"]
+      (when (not (nil? next-chapter-id))
+       [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" next-chapter-id)}
+        "Next"])
+      [:.h-3]
+      [:div
+       (biff/unsafe content)]
+      [:.h-3]
+      (when (not (nil? previous-chapter-id))
+       [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" previous-chapter-id)}
+        "Previous"])
+      [:a.btn {:href (str "/work/" (:xt/id work))}
+       "Work Home"]
+      (when (not (nil? next-chapter-id))
+       [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" next-chapter-id)}
+        "Next"])
+      [:.h-3]
+      (if user
+       (new-comment-form work chapter)
+       nil)
+      [:.h-3]
+      (comment-view db user admin owner work chapter)]
+     [:div
+      (when (not (nil? previous-chapter-id))
+       [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" previous-chapter-id)}
+        "Previous"])
+      [:a.btn {:href (str "/work/" (:xt/id work))}
+       "Work Home"]
+      (when (not (nil? next-chapter-id))
+       [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" next-chapter-id)}
+        "Next"])
+      [:.h-3]
+      "This chapter has no content."]))))
 
 (defn author-works-list [db works]
   (if (seq works)
