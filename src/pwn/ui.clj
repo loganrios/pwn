@@ -37,7 +37,7 @@
      [:div#profile-nav
       {:hidden true}
       [:.h-3]
-      [:div.container.flex.flex-wrap.items-center.justify-between.mx-auto.bg-gray-50.rounded-md.p-2
+      [:div.container.flex.flex-wrap.items-center.justify-between.mx-auto.bg-gray-50.rounded-md.py-2.px-5
        [:a.link {:href "/user/followed"} "Followed"]
        [:a.link {:href "/dash"} "Dashboard"]
        [:a.link {:href "/user/settings"} "Settings"]
