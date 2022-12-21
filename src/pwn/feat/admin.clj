@@ -56,9 +56,9 @@
  {:status 303
   :headers {"Location" "/admin"}})
 
-(defn admin [{:keys [biff/db]}]
+(defn admin [{:keys [biff/db] :as sys}]
   (ui/page
-   {}
+   sys
    [:div "This is the Admin Page! Congratz on making it in life!"]
    [:.h-3]
    (new-admin-form)

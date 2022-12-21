@@ -22,19 +22,23 @@
                                     head))))
    body))
 
-(def topbar
-  [:nav
-   [:div.container.flex.flex-wrap.items-center.justify-between.mx-auto
-    [:a.text-blue-500.text-xl.font-semibold {:href "/"} "Project Web Novel"]
-    [:a.text-blue-500 {:href "/genre"} "Genres"]
-    [:a.text-blue-500 {:href "/user/followed"} "Followed"]
-    [:a.text-blue-500 {:href "/app"} "Dashboard"]
-    [:a.text-blue-500 {:href "/app/user/settings"} "Settings"]]
-   [:.h-5]])
+(defn topbar [sys]
+  (let [uid (get-in sys [:session :uid])
+        items [:div.container.flex.flex-wrap.items-center.justify-between.mx-auto
+               [:a.text-blue-500.text-xl.font-semibold {:href "/"} "Project Web Novel"]
+               [:a.text-blue-500 {:href "/genre"} "Genres"]]
+        logged-in [[:a.text-blue-500 {:href "/user/followed"} "Followed"]
+                   [:a.text-blue-500 {:href "/app"} "Dashboard"]
+                   [:a.text-blue-500 {:href "/app/user/settings"} "Settings"]]
+        logged-out [[:a.text-blue-500 {:href "/auth/signin"} "Sign in"]]]
+    [:nav#nav
+     (apply conj items (if uid logged-in logged-out))
+     [:.h-5]]))
+
 
 (defn page [opts & body]
   (base
    opts
    [:.p-3.mx-auto.max-w-screen-sm.w-full
-    topbar
+    (topbar opts)
     body]))

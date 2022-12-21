@@ -23,7 +23,7 @@
       (biff/submit-tx sys documents)))
 
   (def genres ["Fantasy" "SciFi" "Romance"
-                 "Drama" "Contemporary" "Nonfiction"])
+               "Drama" "Contemporary" "Nonfiction"])
 
   (defn gen-genre [nm]
     {:db/doc-type :genre

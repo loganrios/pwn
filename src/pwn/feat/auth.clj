@@ -74,18 +74,73 @@
     (when (and success (not existing-user-id))
       (let [user-id (random-uuid)]
         (biff/submit-tx req
-          [{:db/doc-type :user
-            :xt/id user-id
-            :user/email email
-            :user/username (str user-id)
-            :user/joined-at :db/now
-            :user/followed #{}}])))
+                        [{:db/doc-type :user
+                          :xt/id user-id
+                          :user/email email
+                          :user/username (str user-id)
+                          :user/joined-at :db/now
+                          :user/followed #{}}])))
     (if-not success
       {:status 303
        :headers {"location" "/auth/fail/"}}
       {:status 303
        :headers {"location" "/app"}
        :session (assoc session :uid (or existing-user-id (get-user-id)))})))
+
+(defn recaptcha-disclosure [{:keys [link-class]}]
+  [:span "This site is protected by reCAPTCHA and the Google "
+   [:a {:href "https://policies.google.com/privacy"
+        :target "_blank"
+        :class link-class}
+    "Privacy Policy"] " and "
+   [:a {:href "https://policies.google.com/terms"
+        :target "_blank"
+        :class link-class}
+    "Terms of Service"] " apply."])
+
+(defn signin-form [{:keys [recaptcha/site-key] :as sys}]
+  (biff/form
+   {:id "signin-form"
+    :action "/auth/send"}
+   [:div [:label {:for "email"} "Email address:"]]
+   [:.h-1]
+   [:.flex
+    [:input#email
+     {:name "email"
+      :type "email"
+      :autocomplete "email"
+      :placeholder "Enter your email address"}]
+    [:.w-3]
+    [:button.btn.g-recaptcha
+     (merge
+      (when (util/email-signin-enabled? sys)
+        {:data-sitekey site-key
+         :data-callback "onSubscribe"
+         :data-action "subscribe"})
+      {:type "submit"})
+     "Sign in"]]
+   [:.h-1]
+   (if (util/email-signin-enabled? sys)
+     [:.text-sm (recaptcha-disclosure {:link-class "link"})]
+     [:.text-sm
+      "Doesn't need to be a real address. "
+      "Until you add API keys for Postmark and reCAPTCHA, we'll just print your sign-in "
+      "link to the console. See config.edn."])))
+
+(def recaptcha-scripts
+  [[:script {:src "https://www.google.com/recaptcha/api.js"
+             :async "async"
+             :defer "defer"}]
+   [:script (biff/unsafe
+             (str "function onSubscribe(token) { document.getElementById('signin-form').submit()}"))]])
+
+(defn home [sys]
+  (ui/page
+   (merge sys
+          {:base/head (when (util/email-signin-enabled? sys)
+                        recaptcha-scripts)})
+   (when-not (get-in sys [:session :uid])
+     [:div (signin-form sys) [:.h-3]])))
 
 (defn signout [{:keys [session]}]
   {:status 303
@@ -116,7 +171,8 @@
     [:li "You opened the sign-in link on a different device or browser than the one you requested it on."]]))
 
 (def features
-  {:routes [["/auth/send"          {:post send-token}]
+  {:routes [["/auth/signin"         {:get home}]
+            ["/auth/send"          {:post send-token}]
             ["/auth/verify/:token" {:get verify-token}]
             ["/auth/signout"       {:post signout}]]
    :static {"/auth/printed/" signin-printed

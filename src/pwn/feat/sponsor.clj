@@ -7,7 +7,7 @@
 
 (defn home [sys]
   (ui/page
-   {}
+   sys
    [:div "Your account is currently not set up to receive sponsorships."]
    [:.h-3]
    [:div "To receive sponsorships, you'll first need to set up your connected Stripe account."]

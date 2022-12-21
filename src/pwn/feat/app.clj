@@ -113,12 +113,12 @@
 (defn new-chapter [{:keys [work params] :as req}]
   (let [chapter-id (random-uuid)]
     (biff/submit-tx req
-                   [{:db/doc-type :chapter
-                     :xt/id chapter-id
-                     :chapter/title (:title params)
-                     :chapter/created-at (biff/now)}
-                    [::xt/put
-                     (assoc work :work/chapters (conj (vec (:work/chapters work)) chapter-id))]]))
+                    [{:db/doc-type :chapter
+                      :xt/id chapter-id
+                      :chapter/title (:title params)
+                      :chapter/created-at (biff/now)}
+                     [::xt/put
+                      (assoc work :work/chapters (conj (vec (:work/chapters work)) chapter-id))]]))
   {:status 303
    :headers {"Location" (str "/app/work/" (:xt/id work))}})
 
@@ -146,19 +146,19 @@
   (biff/form
    {:action (str "/app/work/" (:xt/id work) "/chapter/" (:xt/id chapter))}
    (let [{:chapter/keys [content title]} chapter]
-    [:div
-     [:.h-1]
-     [:input#chapter-title
-      {:name "chapter-title"
-       :type "text"
-       :value title
-       :required true}]
-     [:.h-3]
-     [:link {:href "https://cdn.quilljs.com/1.3.6/quill.snow.css" :rel "stylesheet"}]
-     [:div#editor (when (seq content) (biff/unsafe content))]
-     [:input {:name "chapter-content" :type "hidden"}]
-     [:script (biff/unsafe quill-js)]
-     [:button.btn {:type "submit"} "Update Content"]])))
+     [:div
+      [:.h-1]
+      [:input#chapter-title
+       {:name "chapter-title"
+        :type "text"
+        :value title
+        :required true}]
+      [:.h-3]
+      [:link {:href "https://cdn.quilljs.com/1.3.6/quill.snow.css" :rel "stylesheet"}]
+      [:div#editor (when (seq content) (biff/unsafe content))]
+      [:input {:name "chapter-content" :type "hidden"}]
+      [:script (biff/unsafe quill-js)]
+      [:button.btn {:type "submit"} "Update Content"]])))
 
 (defn update-chapter [{:keys [work chapter params] :as req}]
   (biff/submit-tx req
@@ -268,7 +268,7 @@
    {:action "/app/author/update"}
    (let [{:author/keys [pen-name]} author]
      [:div
-       [:p "Author Name: "]
+      [:p "Author Name: "]
       [:input#pen-name
        {:name "pen-name"
         :type "text"
@@ -287,11 +287,11 @@
   {:status 303
    :headers {"Location" "/app"}})
 
-(defn app [{:keys [session biff/db] :as req}]
+(defn app [{:keys [session biff/db] :as sys}]
   (let [user-id (:uid session)
         {:user/keys [email username]} (xt/entity db user-id)]
     (ui/page
-     {}
+     sys
      nil
      (auth-info email)
      [:.h-3]
@@ -308,17 +308,17 @@
         [:.h-5]]
        (become-author-form)))))
 
-(defn user [{:keys [session biff/db] :as req}]
+(defn user [{:keys [session biff/db] :as sys}]
   (let [user-id (:uid session)
         user (xt/entity db user-id)]
     (ui/page
-     {}
+     sys
      [:div
       (user-info-form user)])))
 
-(defn work [{:keys [biff/db work owner] :as req}]
+(defn work [{:keys [biff/db work owner] :as sys}]
   (ui/page
-   {}
+   sys
    [:div
     (work-content-form db work (get-all-genres db))
     [:.h-3]
@@ -326,10 +326,11 @@
     [:.h-3]
     (chapters-list db work (:work/chapters work))]))
 
-(defn chapter [{:keys [biff/db work chapter] :as req}]
+(defn chapter [{:keys [biff/db work chapter] :as sys}]
   (ui/page
-   {:base/head
-     [[:script {:src "https://cdn.quilljs.com/1.3.6/quill.js"}]]}
+   (merge sys
+          {:base/head
+           [[:script {:src "https://cdn.quilljs.com/1.3.6/quill.js"}]]})
    [:a.btn {:href (str "/app/work/" (:xt/id work))}
     "Back to Work Dashboard"]
    [:.h-3]
