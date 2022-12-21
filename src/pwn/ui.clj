@@ -29,7 +29,8 @@
       [:a.text-blue-500.text-xl.font-semibold {:href "/"} "Project Web Novel"]
       [:a.text-blue-500 {:href "/genre"} "Genres"]
       (if uid
-        [:a.text-blue-500 {:_ (str "on click toggle @hidden on #profile-nav")} "Me ▼"]
+        [:a.text-blue-500.cursor-pointer
+         {:_ (str "on click toggle @hidden on #profile-nav")} "Me ▼"]
         [:a.text-blue-500 {:href "/auth/signin"} "Register/Login"])]
      [:div#profile-nav
       {:hidden true}
