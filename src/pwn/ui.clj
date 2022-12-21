@@ -29,11 +29,22 @@
       [:div.flex.flex-row.items-center
        [:a.link.text-xl.font-semibold {:href "/"} "Project Web Novel"]
        [:img.w-10.mx-2 {:src "/img/logo.svg"}]]
-      [:a.link {:href "/genre"} "Genres"]
       (if uid
         [:a.link.cursor-pointer
          {:_ (str "on click toggle @hidden on #profile-nav")} "Me ▼"]
         [:a.link {:href "/auth/signin"} "Register/Login"])]
+     [:div.container.flex.flex-wrap.items-center.justify-between.mx-auto
+      [:a.link {:href "/genre"} "Genres"]
+      [:div
+       {:class "search-container"}
+       (biff/form
+        {:action "/search"}
+        [:input#search
+         {:name "search"
+          :type "text"
+          :placeholder "Search..."}]
+        [:button.btn {:type "submit"}
+         "Submit"])]]
      [:div#profile-nav
       {:hidden true}
       [:.h-3]
