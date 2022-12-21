@@ -3,7 +3,7 @@ var quill = new Quill('#editor', {
   placeholder: "Start writing here..."
 });
 
-var form = document.querySelector('form');
+var form = document.getElementById("chapter-content-form");
 form.onsubmit = function() {
   // Populate hidden form on submit
   var about = document.querySelector('input[name=chapter-content]');

@@ -137,7 +137,8 @@
 
 (defn chapter-content-form [work chapter]
   (biff/form
-   {:action (str "/dash/work/" (:xt/id work) "/chapter/" (:xt/id chapter))}
+   {:action (str "/dash/work/" (:xt/id work) "/chapter/" (:xt/id chapter))
+    :id "chapter-content-form"}
    (let [{:chapter/keys [content title]} chapter]
      [:div
       [:.h-1]

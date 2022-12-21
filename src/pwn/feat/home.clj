@@ -316,8 +316,11 @@
   (ui/page
    sys
    (if-let [uid (get-in sys [:session :uid])]
-     [:div "Welcome back, " (:user/username (biff/lookup db :xt/id uid)) "!"]
+     [:p.inline "Welcome back, "
+      [:p.font-semibold.inline (:user/username (biff/lookup db :xt/id uid))]
+      "!"]
      [:div (biff/unsafe (slurp "resources/introduction.html"))])
+   [:.h-3]
    (works-list (:biff/db sys) (get-all-works sys))))
 
 (defn work [{:keys [session biff/db work] :as sys}]
