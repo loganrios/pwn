@@ -18,7 +18,7 @@
    [:div.text-sm (biff/unsafe (slurp "resources/pii-disclaimer.html"))]))
 
 (def features
- {:routes ["/app/sponsee" {:middleware [mid/wrap-signed-in]}
+ {:routes ["/dash/sponsee" {:middleware [mid/wrap-signed-in]}
            ["" {:get home}]]})
 
 (comment

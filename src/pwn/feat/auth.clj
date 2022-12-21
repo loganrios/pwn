@@ -84,7 +84,7 @@
       {:status 303
        :headers {"location" "/auth/fail/"}}
       {:status 303
-       :headers {"location" "/app"}
+       :headers {"location" "/dash"}
        :session (assoc session :uid (or existing-user-id (get-user-id)))})))
 
 (defn recaptcha-disclosure [{:keys [link-class]}]

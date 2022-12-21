@@ -1,4 +1,4 @@
-(ns pwn.feat.app
+(ns pwn.feat.dash
   (:require [com.biffweb :as biff :refer [q]]
             [pwn.middleware :as mid :refer [wrap-work
                                             wrap-chapter]]
@@ -27,7 +27,7 @@
 
 (defn new-work-form []
   (biff/form
-   {:action "/app/work"}
+   {:action "/dash/work"}
    [:div "Create a new work"]
    [:input#title
     {:name "title"
@@ -37,7 +37,7 @@
 
 (defn new-chapter-form [work]
   (biff/form
-   {:action (str "/app/work/" (:xt/id work) "/chapter")}
+   {:action (str "/dash/work/" (:xt/id work) "/chapter")}
    [:div "Create a new chapter"]
    [:input#title
     {:name "title"
@@ -47,7 +47,7 @@
 
 (defn become-author-form []
   (biff/form
-   {:action "/app/author"}
+   {:action "/dash/author"}
    [:div "Become an author"]
    [:input#pen-name
     {:name "pen-name"
@@ -63,13 +63,13 @@
       (for [work works]
         (let [work-map (first work)]
           [:div
-           [:a.text-blue-500.hover:text-blue-800 {:href (str "/app/work/" (:xt/id work-map))}
+           [:a.text-blue-500.hover:text-blue-800 {:href (str "/dash/work/" (:xt/id work-map))}
             (:work/title work-map)]
            " | "
            (str "Followers: " (follower-count db (:xt/id work-map)))
            " | "
            (biff/form
-            {:action (str "/app/work/" (:xt/id work-map) "/delete")
+            {:action (str "/dash/work/" (:xt/id work-map) "/delete")
              :class "inline"}
             [:button.text-blue-500.hover:text-blue-800 {:type "submit"} "Delete"])]))]]
     [:div "You have no works."]))
@@ -78,13 +78,13 @@
   (if (seq chapters)
     (for [chapter (map #(xt/entity db %) chapters)]
       [:div
-       [:a.text-blue-500.hover:text-blue-800 {:href (str "/app/work/" (:xt/id work) "/chapter/" (:xt/id chapter))}
+       [:a.text-blue-500.hover:text-blue-800 {:href (str "/dash/work/" (:xt/id work) "/chapter/" (:xt/id chapter))}
         (:chapter/title chapter)]
        " | "
        [:span.text-gray-600 (biff/format-date (:chapter/created-at chapter) "d MMM H:mm aa")]
        " | "
        (biff/form
-        {:action (str "/app/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/delete")
+        {:action (str "/dash/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/delete")
          :class "inline"}
         [:button.text-blue-500.hover:text-blue-800 {:type "submit"} "Delete"])])
     [:div "You have no chapters."]))
@@ -97,7 +97,7 @@
                       :author/user (:uid session)
                       :author/pen-name (:pen-name params)}])
     {:status 303
-     :headers {"Location" "/app"}}))
+     :headers {"Location" "/dash"}}))
 
 (defn new-work [{:keys [params session] :as req}]
   (let [work-id (random-uuid)]
@@ -108,7 +108,7 @@
                       :work/title (:title params)
                       :work/chapters []}]))
   {:status 303
-   :headers {"Location" "/app"}})
+   :headers {"Location" "/dash"}})
 
 (defn new-chapter [{:keys [work params] :as req}]
   (let [chapter-id (random-uuid)]
@@ -120,14 +120,14 @@
                      [::xt/put
                       (assoc work :work/chapters (conj (vec (:work/chapters work)) chapter-id))]]))
   {:status 303
-   :headers {"Location" (str "/app/work/" (:xt/id work))}})
+   :headers {"Location" (str "/dash/work/" (:xt/id work))}})
 
 (defn delete-work [{:keys [biff/db work] :as req}]
   (biff/submit-tx req
                   [{:db/op :delete
                     :xt/id (:xt/id work)}])
   {:status 303
-   :headers {"Location" "/app"}})
+   :headers {"Location" "/dash"}})
 
 (defn update-work [{:keys [work params] :as req}]
   (biff/submit-tx req
@@ -138,13 +138,13 @@
                            :work/primary-genre (:primary-genre params)
                            :work/secondary-genre (:secondary-genre params))]])
   {:status 303
-   :headers {"Location" (str "/app/work/" (:xt/id work))}})
+   :headers {"Location" (str "/dash/work/" (:xt/id work))}})
 
 (def quill-js (slurp "resources/quill.js"))
 
 (defn chapter-content-form [work chapter]
   (biff/form
-   {:action (str "/app/work/" (:xt/id work) "/chapter/" (:xt/id chapter))}
+   {:action (str "/dash/work/" (:xt/id work) "/chapter/" (:xt/id chapter))}
    (let [{:chapter/keys [content title]} chapter]
      [:div
       [:.h-1]
@@ -167,7 +167,7 @@
                            :chapter/content (:chapter-content params)
                            :chapter/title (:chapter-title params))]])
   {:status 303
-   :headers {"Location" (str "/app/work/" (:xt/id work) "/chapter/" (:xt/id chapter))}})
+   :headers {"Location" (str "/dash/work/" (:xt/id work) "/chapter/" (:xt/id chapter))}})
 
 (defn delete-chapter [{:keys [biff/db work chapter] :as req}]
   (biff/submit-tx req
@@ -176,11 +176,11 @@
                    [::xt/put
                     (assoc work :work/chapters (remove #(= (:xt/id chapter) %) (:work/chapters work)))]])
   {:status 303
-   :headers {"Location" (str "/app/work/" (:xt/id work))}})
+   :headers {"Location" (str "/dash/work/" (:xt/id work))}})
 
 (defn work-content-form [db work genre-list]
   (biff/form
-   {:action (str "/app/work/" (:xt/id work))}
+   {:action (str "/dash/work/" (:xt/id work))}
    (let [{:work/keys [title blurb primary-genre secondary-genre]} work]
      [:div
       [:p "Work Title: "]
@@ -236,7 +236,7 @@
 
 (defn user-info-form [user]
   (biff/form
-   {:action "/app/user/settings"}
+   {:action "/dash/user/settings"}
    (let [{:user/keys [email username joined-at]} user]
      [:div
       [:div (str "Email: " email)]
@@ -261,11 +261,11 @@
                       :xt/id (:xt/id user)
                       :user/username (:username params)}]))
   {:status 303
-   :headers {"Location" "/app/user/settings"}})
+   :headers {"Location" "/dash/user/settings"}})
 
 (defn author-info-form [author]
   (biff/form
-   {:action "/app/author/update"}
+   {:action "/dash/author/update"}
    (let [{:author/keys [pen-name]} author]
      [:div
       [:p "Author Name: "]
@@ -285,9 +285,9 @@
                       :xt/id (:xt/id author-id)
                       :author/pen-name (:pen-name params)}]))
   {:status 303
-   :headers {"Location" "/app"}})
+   :headers {"Location" "/dash"}})
 
-(defn app [{:keys [session biff/db] :as sys}]
+(defn dash [{:keys [session biff/db] :as sys}]
   (let [user-id (:uid session)
         {:user/keys [email username]} (xt/entity db user-id)]
     (ui/page
@@ -300,7 +300,7 @@
         [:.h-3]
         (author-info-form author)
         [:.h-3]
-        [:a.btn {:href "/app/sponsee"} "Sponsorship Dashboard"]
+        [:a.btn {:href "/dash/sponsee"} "Sponsorship Dashboard"]
         [:.h-3]
         (new-work-form)
         (let [works (uid->works db user-id)]
@@ -331,15 +331,15 @@
    (merge sys
           {:base/head
            [[:script {:src "https://cdn.quilljs.com/1.3.6/quill.js"}]]})
-   [:a.btn {:href (str "/app/work/" (:xt/id work))}
+   [:a.btn {:href (str "/dash/work/" (:xt/id work))}
     "Back to Work Dashboard"]
    [:.h-3]
    [:div
     (chapter-content-form work chapter)]))
 
 (def features
-  {:routes ["/app" {:middleware [mid/wrap-signed-in]}
-            ["" {:get app}]
+  {:routes ["/dash" {:middleware [mid/wrap-signed-in]}
+            ["" {:get dash}]
             ["/user/settings" {:get user
                                :post update-user}]
             ["/author"

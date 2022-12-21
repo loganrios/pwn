@@ -1,6 +1,6 @@
 (ns pwn
   (:require [com.biffweb :as biff]
-            [pwn.feat.app :as app]
+            [pwn.feat.dash :as dash]
             [pwn.feat.auth :as auth]
             [pwn.feat.admin :as admin]
             [pwn.feat.home :as home]
@@ -15,7 +15,7 @@
             [nrepl.cmdline :as nrepl-cmd]))
 
 (def features
-  [app/features
+  [dash/features
    auth/features
    admin/features
    home/features

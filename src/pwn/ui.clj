@@ -37,8 +37,8 @@
       [:.h-3]
       [:div.container.flex.flex-wrap.items-center.justify-between.mx-auto.bg-slate-100.rounded-md.p-2
        [:a.text-blue-500 {:href "/user/followed"} "Followed"]
-       [:a.text-blue-500 {:href "/app"} "Dashboard"]
-       [:a.text-blue-500 {:href "/app/user/settings"} "Settings"]
+       [:a.text-blue-500 {:href "/dash"} "Dashboard"]
+       [:a.text-blue-500 {:href "/dash/user/settings"} "Settings"]
        (biff/form {:action "/auth/signout" :class "inline"}
                   [:button.text-blue-500 {:type "submit"} "Sign out"])]]
      [:.h-5]]))
