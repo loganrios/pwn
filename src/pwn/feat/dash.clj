@@ -104,14 +104,17 @@
    :headers {"Location" "/dash"}})
 
 (defn new-chapter [{:keys [work params] :as req}]
-  (let [chapter-id (random-uuid)]
+  (let [chapter-id (random-uuid)
+        prev-chapters (:work/chapters work)]
     (biff/submit-tx req
                     [{:db/doc-type :chapter
                       :xt/id chapter-id
                       :chapter/title (:title params)
                       :chapter/created-at (biff/now)}
-                     [::xt/put
-                      (assoc work :work/chapters (conj (vec (:work/chapters work)) chapter-id))]]))
+                     {:db/doc-type :work
+                      :db/op :merge
+                      :xt/id (:xt/id work)
+                      :work/chapters (vec (conj prev-chapters chapter-id))}]))
   {:status 303
    :headers {"Location" (str "/dash/work/" (:xt/id work))}})
 
@@ -157,19 +160,24 @@
 
 (defn update-chapter [{:keys [work chapter params] :as req}]
   (biff/submit-tx req
-                  [[::xt/put
-                    (assoc chapter
-                           :chapter/content (:chapter-content params)
-                           :chapter/title (:chapter-title params))]])
+                  [{:db/doc-type :chapter
+                    :db/op :merge
+                    :xt/id (:xt/id chapter)
+                    :chapter/content (:chapter-content params)
+                    :chapter/title (:chapter-title params)}])
   {:status 303
    :headers {"Location" (str "/dash/work/" (:xt/id work) "/chapter/" (:xt/id chapter))}})
 
 (defn delete-chapter [{:keys [biff/db work chapter] :as req}]
-  (biff/submit-tx req
-                  [{:db/op :delete
-                    :xt/id (:xt/id chapter)}
-                   [::xt/put
-                    (assoc work :work/chapters (remove #(= (:xt/id chapter) %) (:work/chapters work)))]])
+  (let [chapter-id (:xt/id chapter)
+        prev-chapters (:work/chapters work)]
+    (biff/submit-tx req
+                    [{:db/op :delete
+                      :xt/id (:xt/id chapter)}
+                     {:db/doc-type :work
+                      :db/op :merge
+                      :xt/id (:xt/id work)
+                      :work/chapters (vec (disj (set prev-chapters) chapter-id))}]))
   {:status 303
    :headers {"Location" (str "/dash/work/" (:xt/id work))}})
 

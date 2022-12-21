@@ -114,22 +114,31 @@
     [:button.btn {:type "submit"} "Post"]]))
 
 (defn new-comment [{:keys [session work chapter params] :as req}]
-  (let [comment-id (random-uuid)]
+  (let [comment-id (random-uuid)
+        prev-comments (:chapter/comments chapter)]
     (biff/submit-tx req
                     [{:db/doc-type :comment
                       :xt/id comment-id
                       :comment/content (:comment params)
                       :comment/timestamp (biff/now)
                       :comment/owner (:uid session)}
-                     [::xt/put
-                      (assoc chapter :chapter/comments (conj (vec (:chapter/comments chapter)) comment-id))]]))
+                     {:db/doc-type :chapter
+                      :db/op :merge
+                      :xt/id (:xt/id chapter)
+                      :chapter/comments (vec (conj prev-comments comment-id))}]))
   {:status 303
    :headers {"Location" (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter))}})
 
 (defn delete-comment [{:keys [work chapter comment] :as req}]
-  (biff/submit-tx req
-                  [[::xt/put
-                    (assoc chapter :chapter/comments (remove #(= (:xt/id comment) %) (:chapter/comments chapter)))]])
+  (let [comment-id (:xt/id comment)
+        prev-comments (:chapter/comments chapter)]
+    (biff/submit-tx req
+                   [{:db/op :delete
+                     :xt/id comment-id}
+                    {:db/doc-type :chapter
+                     :db/op :merge
+                     :xt/id (:xt/id chapter)
+                     :chapter/comments (vec (disj (set prev-comments) comment-id))}]))
   {:status 303
    :headers {"Location" (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter))}})
 
