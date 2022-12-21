@@ -190,6 +190,20 @@
   {:status 303
    :headers {"Location" (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter))}})
 
+(defn delete-reply [{:keys [biff/db work chapter comment] :as req}]
+  (let [reply-id (:xt/id comment)
+        parent-comment (biff/lookup db :comment/replies reply-id)
+        prev-comments (:comment/replies parent-comment)]
+    (biff/submit-tx req
+                   [{:db/op :delete
+                     :xt/id reply-id}
+                    {:db/doc-type :comment
+                     :db/op :merge
+                     :xt/id (:xt/id parent-comment)
+                     :comment/replies (disj prev-comments reply-id)}]))
+  {:status 303
+   :headers {"Location" (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter))}})
+
 (defn reply-view [db user admin owner work chapter comment recur-count]
   (for [comment-id (:comment/replies comment)]
     (let [reply (xt/entity db comment-id)
@@ -221,7 +235,7 @@
            [:span.w-2.inline-block]
            [:span
             (biff/form
-             {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id reply) "/delete")
+             {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id reply) "/delete-reply")
               :class "inline"}
              [:button.link {:type "submit"} "Delete"])]]
           (if (= user owner)
@@ -231,7 +245,7 @@
               "Reply"]
              [:span.w-2.inline-block]
              (biff/form
-              {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id reply) "/delete")
+              {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id reply) "/delete-reply")
                :class "inline"}
               [:button.link {:type "submit"} "Delete"])]
             (if admin
@@ -242,7 +256,7 @@
                  "Reply"]]
                [:span.w-2.inline-block]
                (biff/form
-                {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id reply) "/delete")
+                {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id reply) "/delete-reply")
                  :class "inline"}
                 [:button.link {:type "submit"} "Delete"])]
               (if user
@@ -289,7 +303,7 @@
            [:span.w-2.inline-block]
            [:span
             (biff/form
-             {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/delete")
+             {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/delete-comment")
               :class "inline"}
              [:button.link {:type "submit"} "Delete"])]]
           (if (= user owner)
@@ -299,7 +313,7 @@
               "Reply"]
              [:span.w-2.inline-block]
              (biff/form
-              {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/delete")
+              {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/delete-comment")
                :class "inline"}
               [:button.link {:type "submit"} "Delete"])]
             (if admin
@@ -310,7 +324,7 @@
                  "Reply"]]
                [:span.w-2.inline-block]
                (biff/form
-                {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/delete")
+                {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/delete-comment")
                  :class "inline"}
                 [:button.link {:type "submit"} "Delete"])]
               (if user
@@ -513,9 +527,10 @@
               ["/comment/:comment-id" {:middleware [wrap-comment]}
                ["/edit" {:get edit-comment-form
                          :post edit-comment}]
+               ["/delete-comment" {:post delete-comment}]
                ["/reply" {:get reply-comment-form
                           :post reply-comment}]
-               ["/delete" {:post delete-comment}]]]]
+               ["/delete-reply" {:post delete-reply}]]]]
             ["/genre" {:get genre-home}]
             ["/genre/:genre-id" {:middleware [wrap-genre]}
              ["" {:get genre-by-id}]]]})
