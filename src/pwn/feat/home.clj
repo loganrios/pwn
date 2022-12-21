@@ -444,7 +444,7 @@
        (new-comment-form work chapter)
        nil)
       [:.h-3]
-      (comment-block db user admin owner work chapter)]
+      (comment-view db user admin owner work chapter)]
      [:div
       (when (not (nil? previous-chapter-id))
        [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" previous-chapter-id)}
