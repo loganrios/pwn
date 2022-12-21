@@ -42,9 +42,9 @@
   (for [work works]
     (let [{:work/keys [owner primary-genre secondary-genre blurb]} work]
       [:div
-       [:a.link {:href (str "/work/" (:xt/id work))}
+       [:a.link.text-lg.font-semibold {:href (str "/work/" (:xt/id work))}
         (:work/title work)]
-       " | By: "
+       " by "
        (let [{:keys [xt/id author/pen-name]} (uid->author db owner)]
          [:a.link {:href (str "/author/" id)}
           pen-name])
@@ -60,10 +60,9 @@
   (if (seq chapters)
     (for [chapter (map #(xt/entity db %) chapters)]
       [:div
-       [:a.link {:href (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter))}
+       [:a.text-lg.link {:href (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter))}
         (:chapter/title chapter)]
-       " | "
-       [:span.text-gray-600 (biff/format-date (:chapter/created-at chapter) "d MMM H:mm aa")]])
+       [:span.text-gray-600.px-2 (biff/format-date (:chapter/created-at chapter) "d MMM H:mm aa")]])
     [:div "This work has no chapters."]))
 
 (defn get-chapter-index [chapters-list chapter-id]
@@ -321,6 +320,8 @@
       "!"]
      [:div (biff/unsafe (slurp "resources/introduction.html"))])
    [:.h-3]
+   [:.text-xl.font-semibold "Now on PWN..."]
+   [:.h-3]
    (works-list (:biff/db sys) (get-all-works sys))))
 
 (defn work [{:keys [session biff/db work] :as sys}]
@@ -333,37 +334,36 @@
                            (= (:xt/id work) follow-list))
                          (:user/followed user))]
      [:div
-      [:div.container.flex.flex-wrap.items-center.justify-between.mx-auto
-       (when user-id
-         (if follower?
-           (biff/form
-            {:action (str "/work/" (:xt/id work) "/unfollow")}
-            [:button.btn {:type "submit"}
-             "Unfollow"])
-           (biff/form
-            {:action (str "/work/" (:xt/id work) "/follow")}
-            [:button.btn {:type "submit"}
-             "Follow"])))]
+      [:div.text-xl.font-semibold title]
+      [:div.text-lg "by " (:author/pen-name (uid->author db owner))]
       [:.h-3]
-      [:div
-       title
-       " | "
-       (str "By: " (:author/pen-name (uid->author db owner)))]
+      [:div.flex.items-center
+       (when user-id
+         (biff/form
+          {:action (str "/work/" (:xt/id work) (if follower? "/unfollow" "/follow"))
+           :class "inline"}
+          [:button.btn {:type "submit"} (if follower? "Unfollow" "Follow")]))
+       [:div.px-2 "This work has " (follower-count db (:xt/id work)) " follower(s)."]]
       [:.h-1]
-      [:div]
       (if (= primary-genre secondary-genre)
         [:div (genreid->name db primary-genre)]
         [:div (genreid->name db primary-genre) " " (genreid->name db secondary-genre)])
       [:.h-3]
-      [:div "This work has " (follower-count db (:xt/id work)) " followers."]
       [:.h-3]
-      [:div blurb]
+      [:div.bg-gray-100.rounded-md.p-5 blurb]
       [:.h-3]
       [:div (chapters-list db work chapters)]])))
 
-;; HACK do not commit
-(defn comment-block [& _]
-  [:div "HACK comment-block"])
+(defn chapter-navigation [work-id prev-ch-id next-ch-id]
+  [:div.flex.flex-row.justify-between
+   [:a.link.pr-5 {:href (str "/work/" work-id "/chapter/" prev-ch-id)
+                  :class (when (nil? prev-ch-id) "invisible")}
+    "< Previous"]
+   [:a.link {:href (str "/work/" work-id)}
+    "Work Home"]
+   [:a.link.pl-5 {:href (str "/work/" work-id "/chapter/" next-ch-id)
+                  :class (when (nil? next-ch-id) "invisible")}
+    "Next >"]])
 
 (defn chapter [{:keys [session biff/db work owner chapter] :as sys}]
   (ui/page
@@ -377,28 +377,15 @@
          next-chapter-id (get-next-ch-id (:work/chapters work) current-ch-index)]
      (if (seq content)
        [:div
-        [:div title]
+        [:a.link.text-xl.font-semibold {:href (str "/work/" (:xt/id work))} (:work/title work)]
+        [:div.text-lg.font-semibold "⤷" title]
         [:.h-3]
-        (when (not (nil? previous-chapter-id))
-          [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" previous-chapter-id)}
-           "Previous"])
-        [:a.btn {:href (str "/work/" (:xt/id work))}
-         "Work Home"]
-        (when (not (nil? next-chapter-id))
-          [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" next-chapter-id)}
-           "Next"])
-        [:.h-3]
+        (chapter-navigation (:xt/id work) previous-chapter-id next-chapter-id)
+        [:.h-6]
         [:div
          (biff/unsafe content)]
-        [:.h-3]
-        (when (not (nil? previous-chapter-id))
-          [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" previous-chapter-id)}
-           "Previous"])
-        [:a.btn {:href (str "/work/" (:xt/id work))}
-         "Work Home"]
-        (when (not (nil? next-chapter-id))
-          [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" next-chapter-id)}
-           "Next"])
+        [:.h-6]
+        (chapter-navigation (:xt/id work) previous-chapter-id next-chapter-id)
         [:.h-3]
         (if user
           (new-comment-form work chapter)
