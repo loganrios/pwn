@@ -1,0 +1,131 @@
+[{:db/doc-type :user
+  :xt/id :db.id/user-a
+  :user/email "a@example.com"
+  :user/username "TestAdminUsername"
+  :user/joined-at :db/now}
+ {:db/doc-type :user
+  :xt/id :db.id/user-b
+  :user/email "b@example.com"
+  :user/username "TestAuthorUsername"
+  :user/joined-at :db/now}
+ {:db/doc-type :user
+  :xt/id :db.id/user-c
+  :user/email "c@example.com"
+  :user/username "TestUserUsername"
+  :user/joined-at :db/now}
+
+ {:db/doc-type :admin
+  :xt/id :db.id/admin-a
+  :admin/user :db.id/user-a}
+
+ {:db/doc-type :author
+  :xt/id :db.id/author-a
+  :author/user :db.id/user-a
+  :author/pen-name "TestAdminPenName"}
+ {:db/doc-type :author
+  :xt/id :db.id/author-b
+  :author/user :db.id/user-b
+  :author/pen-name "TestAuthorPenName"}
+
+ {:db/doc-type :work
+  :xt/id :db.id/work-a
+  :work/owner :db.id/user-a
+  :work/blurb "A true Admin leaves the most elegant blurb for testing purposes."
+  :work/title "The Work of an Admin: A Thankless Task"
+  :work/chapters [:db.id/chapter-a]
+  :work/primary-genre :fantasy
+  :work/secondary-genre :romance}
+ {:db/doc-type :work
+  :xt/id :db.id/work-b
+  :work/owner :db.id/user-b
+  :work/blurb "Authors are just roleplayers that are playing by themselves."
+  :work/title "Exposing the reality of authorship after getting hit by a truck and finding myself in a fantasy world."
+  :work/chapters [:db.id/chapter-b]
+  :work/primary-genre :nonfiction
+  :work/secondary-genre :fantasy}
+
+ {:db/doc-type :chapter
+  :xt/id :db.id/chapter-a
+  :chapter/title "1.01 - The Life of an Admin"
+  :chapter/content "In the beginning, there was Chaos. It was a good time, it was a hard time. Three Admins had an idea to improve the world. They got together and smacked heads. It hurt. Then they realized their idea was terrible, so they bought a new idea at Walmart. It was okay. They implemented the idea and became true Admins. The end."
+  :chapter/created-at :db/now
+  :chapter/comments [:db.id/comment-a]}
+ {:db/doc-type :chapter
+  :xt/id :db.id/chapter-b
+  :chapter/title "Chapter 1: Authors are scammers and I proved it by dying."
+  :chapter/content "I had a dream. I would become the greatest author who ever lived. I set off on a journey expecting to be perpetually ten while I caught all the author tips and tricks in the region. Then Season 2 happened and I went to another region. Oh, and I lost the championship. Then Seasons 3, 4, 5, 6... You get the picture. So I realized being an author is actually a monetization scheme to cheat customers out of their money by tricking them into thinking you are releasing new content when actually you are rewriting a story that has been done a thousand times before."
+  :chapter/created-at :db/now
+  :chapter/comments [:db.id/comment-b :db.id/comment-c]}
+
+ {:db/doc-type :comment
+  :xt/id :db.id/comment-a
+  :comment/owner :db.id/user-b
+  :comment/content "You admins are doing a fantastic job with the site so far!"
+  :comment/timestamp :db/now
+  :comment/replies #{:db.id/reply-a}}
+ {:db/doc-type :comment
+  :xt/id :db.id/reply-a
+  :comment/owner :db.id/user-a
+  :comment/content "Thank you! Our's is a thankless task, and I maintain that none have recognized our magnificence until this day."
+  :comment/timestamp :db/now
+  :comment/replies #{:db.id/reply-b}}
+ {:db/doc-type :comment
+  :xt/id :db.id/reply-b
+  :comment/owner :db.id/user-b
+  :comment/content "I literally just thanked you...?"
+  :comment/timestamp :db/now
+  :comment/replies #{:db.id/reply-c}}
+ {:db/doc-type :comment
+  :xt/id :db.id/reply-c
+  :comment/owner :db.id/user-a
+  :comment/content "I am mad that you would insist that I am wrong."
+  :comment/timestamp :db/now}
+
+ {:db/doc-type :comment
+   :xt/id :db.id/comment-b
+  :comment/owner :db.id/user-c
+  :comment/content "You're so negative..."
+  :comment/timestamp :db/now
+  :comment/replies #{:db.id/reply-d :db.id/reply-e}}
+ {:db/doc-type :comment
+   :xt/id :db.id/comment-c
+  :comment/owner :db.id/user-a
+  :comment/content "What the heck is wrong with you?"
+  :comment/timestamp :db/now
+  :comment/replies #{:db.id/reply-f}}
+ {:db/doc-type :comment
+   :xt/id :db.id/reply-d
+  :comment/owner :db.id/user-a
+  :comment/content "I agree. This guy is too much."
+  :comment/timestamp :db/now}
+ {:db/doc-type :comment
+   :xt/id :db.id/reply-e
+  :comment/owner :db.id/user-b
+  :comment/content "Negativity is the mother of all creation."
+  :comment/timestamp :db/now}
+ {:db/doc-type :comment
+   :xt/id :db.id/reply-f
+  :comment/owner :db.id/user-b
+  :comment/content "You don't understand true art. Begone, both of you!"
+  :comment/timestamp :db/now}
+
+ {:db/doc-type :genre
+  :xt/id :fantasy
+  :genre/description "Stories containing fantastical elements that may or may not conform to scientific laws or our understanding of the universe."
+  :genre/display-name "Fantasy"}
+ {:db/doc-type :genre
+  :xt/id :romance
+  :genre/description "Sweet, sweet lovin' time."
+  :genre/display-name "Romance"}
+ {:db/doc-type :genre
+  :xt/id :scifi
+  :genre/description "Stories containing fantastical elements that may or may not stretch our understanding of the universe, but nevertheless conform to scientific laws."
+  :genre/display-name "Sci-Fi"}
+ {:db/doc-type :genre
+  :xt/id :drama
+  :genre/description "Stories containing dramatical elements, especially regarding human relationships. Dramas are often tragedies and explore the depths of human emotions."
+  :genre/display-name "Drama"}
+ {:db/doc-type :genre
+  :xt/id :nonfiction
+  :genre/description "Stories containing an account of true events. All people, places, and events mentioned inside are true and really happened."
+  :genre/display-name "Nonfiction"}]

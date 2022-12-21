@@ -1,6 +1,8 @@
 (ns pwn.repl
   (:require [com.biffweb :as biff :refer [q lookup lookup-id submit-tx]]
-            [xtdb.api :as xt]))
+            [xtdb.api :as xt]
+            [clojure.edn :as edn]
+            [clojure.java.io :as io]))
 
 (defn get-sys []
   (biff/assoc-db @biff/system))
@@ -14,6 +16,14 @@
   (q db
      '{:find [(pull e [*])]
        :where [[e :xt/id]]}))
+
+(defn add-fixtures []
+  (biff/submit-tx (get-sys)
+                  (-> (io/resource "fixtures.edn")
+                      slurp
+                      edn/read-string)))
+
+
 
 (comment
   ;;Genre Seed for Testing
@@ -38,6 +48,8 @@
   (seed genres-seed)
 
   (sort (keys @biff/system))
+
+  (add-fixtures)
 
   (fq (:biff/db (get-sys)))
 
