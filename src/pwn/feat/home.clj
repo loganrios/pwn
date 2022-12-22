@@ -65,6 +65,16 @@
        [:span.text-gray-600.px-2 (biff/format-date (:chapter/created-at chapter) "d MMM H:mm aa")]])
     [:div "This work has no chapters."]))
 
+(defn recent-chapters-list [db work chapters]
+  (if (seq chapters)
+    (let [last-five-chapters (take 5 (reverse (sort-by :chapter/created-at (map #(xt/entity db %) chapters))))]
+      (for [chapter last-five-chapters]
+        [:div
+         [:a.link {:href (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter))}
+          (:chapter/title chapter)]
+         [:span.text-gray-600.px-2 (biff/format-date (:chapter/created-at chapter) "d MMM H:mm aa")]]))
+    [:div "This work has no chapters."]))
+
 (defn get-chapter-index [chapters-list chapter-id]
   (first (keep-indexed (fn [index item] (when (#(= chapter-id %) item) index))
                        chapters-list)))
@@ -505,10 +515,11 @@
      [:div (if (seq followed)
              (for [work (map #(xt/entity db %) followed)]
                [:div
-                [:a.link {:href (str "/work/" (:xt/id work))}
+                [:a.text-lg.link {:href (str "/work/" (:xt/id work))}
                  (:work/title work)]
                 [:.h-1]
-                (chapters-list db work (:work/chapters work))
+                [:div.text-sm
+                 (recent-chapters-list db work (:work/chapters work))]
                 [:.h-3]])
              (str "You are not following any works."))])))
 
