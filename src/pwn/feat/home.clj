@@ -38,24 +38,6 @@
         secondary (get-works-by-secondary-genre db genre)]
     (map first (sort-by val > (frequencies (concat primary secondary))))))
 
-(defn works-list [db works]
-  (for [work works]
-    (let [{:work/keys [owner title primary-genre secondary-genre blurb]} work]
-      [:div
-       [:a.link.text-lg.font-semibold {:href (str "/work/" (:xt/id work))}
-        title]
-       " by "
-       (let [{:keys [xt/id author/pen-name]} (uid->author db owner)]
-         [:a.link {:href (str "/author/" id)}
-          pen-name])
-       [:div
-        (if (= primary-genre secondary-genre)
-          [:div (genreid->name db primary-genre)]
-          [:div (genreid->name db primary-genre) " " (genreid->name db secondary-genre)])]
-       [:div
-        blurb]
-       [:.h-3]])))
-
 (defn chapters-list [db work chapters]
   (if (seq chapters)
     (for [chapter (map #(xt/entity db %) chapters)]
@@ -84,6 +66,63 @@
 
 (defn get-next-ch-id [chapters-list current-ch-index]
   (get chapters-list (+ current-ch-index 1)))
+
+(defn chapter-navigation [work-id prev-ch-id next-ch-id]
+  [:div.flex.flex-row.justify-between
+   [:a.link.pr-5 {:href (str "/work/" work-id "/chapter/" prev-ch-id)
+                  :class (when (nil? prev-ch-id) "invisible")}
+    "< Previous"]
+   [:a.link {:href (str "/work/" work-id)}
+    "Work Home"]
+   [:a.link.pl-5 {:href (str "/work/" work-id "/chapter/" next-ch-id)
+                  :class (when (nil? next-ch-id) "invisible")}
+    "Next >"]])
+
+(defn author-works-list [db works]
+  (if (seq works)
+    [:div
+      (for [work works]
+        (let [work-map (first work)
+              {:work/keys [title primary-genre secondary-genre blurb]} work-map]
+          [:div
+           [:a.link {:href (str "/work/" (:xt/id work-map))}
+            title]
+           [:div
+            (if (= primary-genre secondary-genre)
+              [:div (genreid->name db primary-genre)]
+              [:div (genreid->name db primary-genre) " " (genreid->name db secondary-genre)])
+            [:div blurb]]
+           [:.h-3]]))]
+    [:div "This author has no works."]))
+
+(defn works-list [db works]
+  (for [work works]
+    (let [{:work/keys [owner title primary-genre secondary-genre blurb chapters]} work]
+      [:div
+        [:a.link.text-lg.font-semibold {:href (str "/work/" (:xt/id work))}
+         title]
+        " by "
+        (let [{:keys [xt/id author/pen-name]} (uid->author db owner)]
+          [:a.link {:href (str "/author/" id)}
+           pen-name])
+        [:div
+         (if (= primary-genre secondary-genre)
+           [:div (genreid->name db primary-genre)]
+           [:div (genreid->name db primary-genre) " " (genreid->name db secondary-genre)])]
+        [:.h-1]
+        blurb
+        [:.h-3]
+        (when (seq chapters)
+          [:div
+            "Most Recent Post: "
+            (first (recent-chapters-list db work chapters))])
+        [:.h-1]
+        [:div.flex.flex-row.justify-between
+         [:span (str (follower-count db (:xt/id work)) " Followers")]
+         [:span.w-2.inline-block]
+         [:span (str (count chapters) " Chapters")]
+         [:span.w-2.inline-block]]
+        [:.h-4.border-b]])))
 
 (defn follow-work [{:keys [session biff/db work] :as req}]
   (let [user-id (:uid session)
@@ -182,7 +221,9 @@
       :name "reply-content"
       :wrap "soft"
       :placeholder "Enter your reply here."}]
-    [:button.btn {:type "submit"} "Submit"]]))
+    [:button.btn {:type "submit"} "Submit"]
+    [:button.link {:href (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter))}
+            "Cancel"]]))
 
 (defn reply-comment [{:keys [session work chapter comment params] :as req}]
   (let [comment-id (random-uuid)
@@ -235,7 +276,7 @@
            (str "@" (:comment/owner comment)))]
         content
         (if (= user (:comment/owner reply))
-          [:.text-sm
+          [:div
            [:a.link {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id reply) "/reply")
                      :hx-target "closest div"}
             "Reply"]
@@ -270,7 +311,7 @@
                  :class "inline"}
                 [:button.link {:type "submit"} "Delete"])]
               (if user
-                [:.text-sm
+                [:.div
                  [:a.link {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/reply")
                            :hx-target "closest div"}
                   "Reply"]]
@@ -328,7 +369,7 @@
               [:button.link {:type "submit"} "Delete"])]
             (if admin
               [:div
-               [:.text-sm
+               [:.div
                 [:a.link {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/reply")
                           :hx-target "closest div"}
                  "Reply"]]
@@ -338,7 +379,7 @@
                  :class "inline"}
                 [:button.link {:type "submit"} "Delete"])]
               (if user
-                [:.text-sm
+                [:.div
                  [:a.link {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/reply")
                            :hx-target "closest div"}
                   "Reply"]]
@@ -391,17 +432,6 @@
       [:.h-3]
       [:div (chapters-list db work chapters)]])))
 
-(defn chapter-navigation [work-id prev-ch-id next-ch-id]
-  [:div.flex.flex-row.justify-between
-   [:a.link.pr-5 {:href (str "/work/" work-id "/chapter/" prev-ch-id)
-                  :class (when (nil? prev-ch-id) "invisible")}
-    "< Previous"]
-   [:a.link {:href (str "/work/" work-id)}
-    "Work Home"]
-   [:a.link.pl-5 {:href (str "/work/" work-id "/chapter/" next-ch-id)
-                  :class (when (nil? next-ch-id) "invisible")}
-    "Next >"]])
-
 (defn chapter [{:keys [session biff/db work owner chapter] :as sys}]
   (ui/page
    sys
@@ -430,33 +460,9 @@
         [:.h-3]
         (comment-view db user admin owner work chapter)]
        [:div
-        (when (not (nil? previous-chapter-id))
-          [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" previous-chapter-id)}
-           "Previous"])
-        [:a.btn {:href (str "/work/" (:xt/id work))}
-         "Work Home"]
-        (when (not (nil? next-chapter-id))
-          [:a.btn {:href (str "/work/" (:xt/id work) "/chapter/" next-chapter-id)}
-           "Next"])
+        (chapter-navigation (:xt/id work) previous-chapter-id next-chapter-id)
         [:.h-3]
         "This chapter has no content."]))))
-
-(defn author-works-list [db works]
-  (if (seq works)
-    [:div
-      (for [work works]
-        (let [work-map (first work)
-              {:work/keys [title primary-genre secondary-genre blurb]} work-map]
-          [:div
-           [:a.link {:href (str "/work/" (:xt/id work-map))}
-            title]
-           [:div
-            (if (= primary-genre secondary-genre)
-              [:div (genreid->name db primary-genre)]
-              [:div (genreid->name db primary-genre) " " (genreid->name db secondary-genre)])
-            [:div blurb]]
-           [:.h-3]]))]
-    [:div "This author has no works."]))
 
 (defn author [{:keys [biff/db author] :as sys}]
   (ui/page
