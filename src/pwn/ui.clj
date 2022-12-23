@@ -18,7 +18,8 @@
        (update :base/head (fn [head]
                             (concat [[:link {:rel "stylesheet" :href (css-path)}]
                                      [:script {:src "https://unpkg.com/htmx.org@1.8.4"}]
-                                     [:script {:src "https://unpkg.com/hyperscript.org@0.9.7"}]]
+                                     [:script {:src "https://unpkg.com/hyperscript.org@0.9.7"}]
+                                     [:script (biff/unsafe (slurp (io/resource "darkmode.js")))]]
                                     head))))
    body))
 
@@ -29,6 +30,7 @@
       [:div.flex.flex-row.items-center
        [:a.link.text-xl.font-semibold {:href "/"} "Project Web Novel"]
        [:img.w-10.mx-2 {:src "/img/logo.svg"}]]
+      [:button.btn.mx-6.my-3 {:onclick "toggleDarkMode()"} "Toggle Dark Mode"]
       (if uid
         [:a.link.cursor-pointer
          {:_ (str "on click toggle @hidden on #profile-nav")} "Me ▼"]
@@ -48,7 +50,7 @@
      [:div#profile-nav
       {:hidden true}
       [:.h-3]
-      [:div.container.flex.flex-wrap.items-center.justify-between.mx-auto.bg-gray-50.rounded-md.py-2.px-5
+      [:div.container.flex.flex-wrap.items-center.justify-between.mx-auto.bg-gray-50.dark:bg-zinc-700.rounded-md.py-2.px-5
        [:a.link {:href "/user/followed"} "Followed"]
        [:a.link {:href "/dash"} "Dashboard"]
        [:a.link {:href "/user/settings"} "Settings"]
@@ -70,7 +72,8 @@
 (defn page [opts & body]
   (base
    opts
-   [:.p-3.mx-auto.max-w-screen-sm.w-full
+   [:.dark:bg-zinc-900.dark:text-white.h-screen.w-screen
+   [:.p-3.mx-auto.max-w-screen-lg.w-full
     (topbar opts)
     body
-    footer]))
+    footer]]))

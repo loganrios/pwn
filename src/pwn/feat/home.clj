@@ -428,7 +428,7 @@
         [:div (genreid->name db primary-genre) " " (genreid->name db secondary-genre)])
       [:.h-3]
       [:.h-3]
-      [:div.bg-gray-100.rounded-md.p-5 blurb]
+      [:div.bg-gray-100.dark:bg-zinc-700.rounded-md.p-5 blurb]
       [:.h-3]
       [:div (chapters-list db work chapters)]])))
 
