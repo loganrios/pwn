@@ -9,7 +9,8 @@
           [:user/email :string]
           [:user/username :string]
           [:user/followed {:optional true} [:set :work/id]]
-          [:user/joined-at inst?]]
+          [:user/joined-at inst?]
+          [:user/stripe-account {:optional true} :string]]
 
    :admin/id :uuid
    :admin [:map {:closed true}

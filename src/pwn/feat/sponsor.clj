@@ -2,8 +2,54 @@
   (:require [clj-http.client :as c]
             [cheshire.core :as json]
             [com.biffweb :as biff]
+            [xtdb.api :as xt]
             [pwn.ui :as ui]
             [pwn.middleware :as mid]))
+
+(def api-url "https://api.stripe.com/v1")
+
+(defn base-req [{:keys [stripe/api-key]}]
+  {:basic-auth [api-key ""]})
+
+(defn endpoint [& args]
+  (apply str api-url args))
+
+(defn api-post [sys endpoint params]
+  (c/post endpoint (merge (base-req sys) {:form-params params})))
+
+(defn create-stripe-account! [{:keys [biff/db] :as sys}]
+  (let [email (:user/email (xt/entity db (get-in sys [:session :uid])))]
+    (-> (api-post sys (endpoint "/accounts")
+                  {:type "express"
+                   :email email})
+        (:body)
+        (json/parse-string)
+        (get "id"))))
+
+(defn get-account-setup-link
+  [{:keys [biff/base-url] :as sys} account-id]
+  (-> (api-post sys (endpoint "/account_links")
+                {:account account-id
+                 :refresh_url (str base-url "/dash/sponsee")
+                 :return_url (str base-url "/dash/sponsee")
+                 :type "account_onboarding"})
+      (:body)
+      (json/parse-string)
+      (get "url")))
+
+(defn create-account-and-reroute [{:keys [biff/db] :as sys}]
+  (let [uid (get-in sys [:session :uid])
+        account-id (create-stripe-account! sys)
+        setup-link (get-account-setup-link sys account-id)]
+    (biff/submit-tx sys [{:db/doc-type :user
+                          :db/op :merge
+                          :xt/id uid
+                          :user/stripe-account account-id}])
+    (println "uid: " uid "\n"
+             "account-id: " account-id "\n"
+             "setup-link: " setup-link)
+    {:status 303
+     :headers {"Location" setup-link}}))
 
 (defn home [sys]
   (ui/page
@@ -12,14 +58,14 @@
    [:.h-3]
    [:div "To receive sponsorships, you'll first need to set up your connected Stripe account."]
    [:.h-3]
-   [:a.btn "Request an account setup link"]
+   (biff/form
+    {:action "/dash/sponsee/account"}
+    [:button.btn {:type "submit"} "Create Stripe account"])
    [:.h-6]
    [:h1.text-lg "PII Disclaimer"]
    [:div.text-sm (biff/unsafe (slurp "resources/pii-disclaimer.html"))]))
 
 (def features
- {:routes ["/dash/sponsee" {:middleware [mid/wrap-signed-in]}
-           ["" {:get home}]]})
-
-(comment
-  nil)
+  {:routes ["/dash/sponsee" {:middleware [mid/wrap-signed-in]}
+            ["" {:get home}]
+            ["/account" {:post create-account-and-reroute}]]})
