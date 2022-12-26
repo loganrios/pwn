@@ -534,7 +534,7 @@
    sys
    (let [works (biff/lookup-all db :work/title (:search params))
          authors (biff/lookup-all db :author/pen-name (:search params))]
-     (if works
+     (if (seq works)
        (for [work works]
          (let [{:work/keys [owner title primary-genre secondary-genre blurb]} work]
            [:div
@@ -549,19 +549,21 @@
                [:div (genreid->name db primary-genre)]
                [:div (genreid->name db primary-genre) " " (genreid->name db secondary-genre)])]
             [:div
-             blurb]]))
-       (if authors
+             blurb]
+            [:.h-3]]))
+       (if (seq authors)
          (for [author authors]
            (let [{:keys [xt/id author/user author/pen-name]} author
                  author-works (author-works-list db (uid->works db user))]
              [:div
-              "Author: "
-              [:a.link {:href (str "/author/" id)}
-               pen-name]
-              [:.h-5]
-              (str "Works by " pen-name ":")
-              [:.h-3]
-              author-works]))
+               "Author: "
+               [:a.link {:href (str "/author/" id)}
+                pen-name]
+               [:.h-5]
+               (str "Works by " pen-name ":")
+               [:.h-3]
+               author-works
+               [:.h-5]]))
          "No Results Found")))))
 
 (def features
