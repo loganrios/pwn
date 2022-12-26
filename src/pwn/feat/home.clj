@@ -532,34 +532,36 @@
 (defn search [{:keys [biff/db params] :as sys}]
   (ui/page
    sys
-   (let [work (biff/lookup db :work/title (:search params))
-         author (biff/lookup db :author/pen-name (:search params))]
-     (if work
-       (let [{:work/keys [owner title primary-genre secondary-genre blurb]} work]
-         [:div
-          [:a.link.text-lg.font-semibold {:href (str "/work/" (:xt/id work))}
-           title]
-          " by "
-          (let [{:keys [xt/id author/pen-name]} (uid->author db owner)]
-            [:a.link {:href (str "/author/" id)}
-             pen-name])
-          [:div
-           (if (= primary-genre secondary-genre)
-             [:div (genreid->name db primary-genre)]
-             [:div (genreid->name db primary-genre) " " (genreid->name db secondary-genre)])]
-          [:div
-           blurb]])
-       (if author
-         (let [{:keys [xt/id author/user author/pen-name]} author
-               author-works (author-works-list db (uid->works db user))]
+   (let [works (biff/lookup-all db :work/title (:search params))
+         authors (biff/lookup-all db :author/pen-name (:search params))]
+     (if works
+       (for [work works]
+         (let [{:work/keys [owner title primary-genre secondary-genre blurb]} work]
            [:div
-            "Author: "
-            [:a.link {:href (str "/author/" id)}
-             pen-name]
-            [:.h-5]
-            (str "Works by " pen-name ":")
-            [:.h-3]
-            author-works])
+            [:a.link.text-lg.font-semibold {:href (str "/work/" (:xt/id work))}
+             title]
+            " by "
+            (let [{:keys [xt/id author/pen-name]} (uid->author db owner)]
+              [:a.link {:href (str "/author/" id)}
+               pen-name])
+            [:div
+             (if (= primary-genre secondary-genre)
+               [:div (genreid->name db primary-genre)]
+               [:div (genreid->name db primary-genre) " " (genreid->name db secondary-genre)])]
+            [:div
+             blurb]]))
+       (if authors
+         (for [author authors]
+           (let [{:keys [xt/id author/user author/pen-name]} author
+                 author-works (author-works-list db (uid->works db user))]
+             [:div
+              "Author: "
+              [:a.link {:href (str "/author/" id)}
+               pen-name]
+              [:.h-5]
+              (str "Works by " pen-name ":")
+              [:.h-3]
+              author-works]))
          "No Results Found")))))
 
 (def features

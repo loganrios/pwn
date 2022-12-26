@@ -73,7 +73,7 @@
   (base
    opts
    [:.dark:bg-zinc-900.dark:text-white.h-screen.w-screen
-   [:.p-3.mx-auto.max-w-screen-lg.w-full
-    (topbar opts)
-    body
-    footer]]))
+    [:.p-3.mx-auto.max-w-screen-lg.w-full
+     (topbar opts)
+     body
+     footer]]))
