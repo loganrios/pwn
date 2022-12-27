@@ -35,6 +35,18 @@
         [:a.link.cursor-pointer
          {:_ (str "on click toggle @hidden on #profile-nav")} "Me ▼"]
         [:a.link {:href "/auth/signin"} "Register/Login"])]
+     [:div#profile-nav
+      {:hidden true}
+      [:.h-3]
+      [:div {:class '[container flex flex-wrap items-center
+                      justify-between mx-auto bg-gray-50
+                      dark:bg-zinc-700 rounded-md py-2 px-5]}
+       [:a.link {:href "/user/followed"} "Followed"]
+       [:a.link {:href "/dash"} "Dashboard"]
+       [:a.link {:href "/user/settings"} "Settings"]
+       (biff/form {:action "/auth/signout" :class "inline"}
+                  [:button.link {:type "submit"} "Sign out"])]
+      [:.h-3]]
      [:div.container.flex.flex-wrap.items-center.justify-between.mx-auto
       [:a.link {:href "/genre"} "Genres"]
       [:div
@@ -47,15 +59,6 @@
           :placeholder "Search..."}]
         [:button.btn {:type "submit"}
          "Submit"])]]
-     [:div#profile-nav
-      {:hidden true}
-      [:.h-3]
-      [:div.container.flex.flex-wrap.items-center.justify-between.mx-auto.bg-gray-50.dark:bg-zinc-700.rounded-md.py-2.px-5
-       [:a.link {:href "/user/followed"} "Followed"]
-       [:a.link {:href "/dash"} "Dashboard"]
-       [:a.link {:href "/user/settings"} "Settings"]
-       (biff/form {:action "/auth/signout" :class "inline"}
-                  [:button.link {:type "submit"} "Sign out"])]]
      [:.h-5]]))
 
 (def footer
@@ -73,7 +76,7 @@
   (base
    opts
    [:.dark:bg-zinc-900.dark:text-white.h-screen.w-screen
-    [:.p-3.mx-auto.max-w-screen-lg.w-full
+    [:.p-3.mx-auto.max-w-screen-md.w-full
      (topbar opts)
      body
      footer]]))
