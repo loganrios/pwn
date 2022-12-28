@@ -17,6 +17,10 @@
 (defn api-post [sys endpoint params]
   (c/post endpoint (merge (base-req sys) {:form-params params})))
 
+;; TODO figure out how to support get params
+(defn api-get [sys endpoint params]
+  (c/get endpoint (merge (base-req sys) {:query-params params})))
+
 (defn create-stripe-account! [{:keys [biff/db] :as sys}]
   (let [email (:user/email (xt/entity db (get-in sys [:session :uid])))]
     (-> (api-post sys (endpoint "/accounts")
@@ -53,25 +57,27 @@
     {:status 303
      :headers {"Location" setup-link}}))
 
-(defn get-started-form [sys]
-  (ui/page
-   sys
+(defn get-started-form [_]
+  [:div
    [:div "Your account is currently not set up to receive sponsorships."]
    [:.h-3]
    [:div "To receive sponsorships, you'll first need to set up your connected Stripe account."]
    [:.h-3]
    (biff/form
-    {:action "/dash/sponsee/account"}
-    [:button.btn {:type "submit"} "Create Stripe account"])
+     {:action "/dash/sponsee/account"}
+     [:button.btn {:type "submit"} "Create Stripe account"])
    [:.h-6]
    [:h1.text-lg "PII Disclaimer"]
-   [:div.text-sm (biff/unsafe (slurp "resources/pii-disclaimer.html"))]))
+   [:div.text-sm (biff/unsafe (slurp "resources/pii-disclaimer.html"))]])
+
+(defn account-status-info [{:keys [biff/db session]}]
+  [:div "Congratulations! Your account is enabled to receive sponsorships."])
 
 (defn home [{:keys [biff/db session] :as sys}]
   (ui/page
    sys
-   (if-let [{:user/keys [stripe-account]} (xt/entity db (:uid session))]
-     [:div "Congratulations! Your account is enabled to receive sponsorships."]
+   (if (:user/stripe-account (xt/entity db (:uid session)))
+     (account-status-info sys)
      (get-started-form sys))))
 
 (def features
