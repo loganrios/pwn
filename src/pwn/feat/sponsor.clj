@@ -21,7 +21,9 @@
   (let [email (:user/email (xt/entity db (get-in sys [:session :uid])))]
     (-> (api-post sys (endpoint "/accounts")
                   {:type "express"
-                   :email email})
+                   :email email
+                   "capabilities[transfers][requested]" true
+                   "capabilities[card_payments][requested]" true})
         (:body)
         (json/parse-string)
         (get "id"))))
@@ -51,7 +53,7 @@
     {:status 303
      :headers {"Location" setup-link}}))
 
-(defn home [sys]
+(defn get-started-form [sys]
   (ui/page
    sys
    [:div "Your account is currently not set up to receive sponsorships."]
@@ -64,6 +66,13 @@
    [:.h-6]
    [:h1.text-lg "PII Disclaimer"]
    [:div.text-sm (biff/unsafe (slurp "resources/pii-disclaimer.html"))]))
+
+(defn home [{:keys [biff/db session] :as sys}]
+  (ui/page
+   sys
+   (if-let [{:user/keys [stripe-account]} (xt/entity db (:uid session))]
+     [:div "Congratulations! Your account is enabled to receive sponsorships."]
+     (get-started-form sys))))
 
 (def features
   {:routes ["/dash/sponsee" {:middleware [mid/wrap-signed-in]}
