@@ -5,6 +5,7 @@
             [pwn.feat.auth :as auth]
             [pwn.feat.admin :as admin]
             [pwn.feat.home :as home]
+            [pwn.feat.sponsee :as sponsee]
             [pwn.feat.sponsor :as sponsor]
             [pwn.feat.worker :as worker]
             [pwn.schema :refer [malli-opts]]
@@ -21,6 +22,7 @@
    auth/features
    admin/features
    home/features
+   sponsee/features
    sponsor/features
    worker/features])
 

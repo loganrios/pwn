@@ -274,7 +274,7 @@
         [:h1.text-lg.font-semibold "Author Info"]
         (author-info-form author)
         [:.h-6]
-        [:a.btn {:href "/dash/sponsee"} "Sponsorship Dashboard"]
+        [:a.btn {:href "/dash/sponsee"} "Sponsee Dashboard"]
         [:.h-6]
         [:h1.text-lg.font-semibold "Manage Works"]
         (new-work-form)

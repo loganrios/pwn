@@ -3,8 +3,8 @@
             [com.biffweb :as biff :refer [q]]
             [xtdb.api :as xt]))
 
-(defn every-minute []
-  (iterate #(biff/add-seconds % (* 5 60)) (java.util.Date.)))
+(defn every-hour []
+  (iterate #(biff/add-seconds % (* 5 60 60)) (java.util.Date.)))
 
 (defn print-usage [{:keys [biff/db]}]
   ;; For a real app, you can have this run once per day and send you the output
@@ -34,7 +34,7 @@
 
 (def features
   {:tasks [{:task #'print-usage
-            :schedule every-minute}]
+            :schedule every-hour}]
    :on-tx alert-new-user
    :queues [{:id :echo
              :consumer #'echo-consumer}]})

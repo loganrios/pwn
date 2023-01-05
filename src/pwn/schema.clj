@@ -10,7 +10,13 @@
           [:user/username :string]
           [:user/followed {:optional true} [:set :work/id]]
           [:user/joined-at inst?]
-          [:user/stripe-account {:optional true} :string]]
+          [:user/stripe-account {:optional true} :string]
+          [:user/stripe-customer {:optional true} :string]]
+
+   :sponsorship/id :uuid
+   :sponsorship [:map {:closed true}
+                 :xt/id :sponsorship/id]
+
 
    :admin/id :uuid
    :admin [:map {:closed true}

@@ -34,7 +34,9 @@
      (auth-info (:user/email user))
      [:.h-3]
      [:div
-      (user-info-form user)])))
+      (user-info-form user)]
+     [:.h-3]
+     [:a.link {:href "/user/settings/sponsor"} "Sponsor Dashboard"])))
 
 (defn update-user [{:keys [session biff/db params] :as req}]
   (let [user-id (:uid session)
