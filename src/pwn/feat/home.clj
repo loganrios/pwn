@@ -8,6 +8,7 @@
             [pwn.ui :as ui]
             [pwn.util :as util :refer [uid->author
                                        uid->works
+                                       uid->username
                                        genreid->name
                                        get-all-genres
                                        follower-count]]
@@ -273,7 +274,7 @@
         [:div
          (if (= (:comment/owner comment) owner)
            (str "@" (:author/pen-name (uid->author db (:comment/owner comment))))
-           (str "@" (:comment/owner comment)))]
+           (str "@" (uid->username db (:comment/owner comment))))]
         content
         (if (= user (:comment/owner reply))
           [:div
@@ -301,15 +302,14 @@
               [:button.link {:type "submit"} "Delete"])]
             (if admin
               [:div
-               [:.text-sm
                 [:a.link {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id reply) "/reply")
                           :hx-target "closest div"}
-                 "Reply"]]
-               [:span.w-2.inline-block]
-               (biff/form
-                {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id reply) "/delete-reply")
-                 :class "inline"}
-                [:button.link {:type "submit"} "Delete"])]
+                 "Reply"]
+                [:span.w-2.inline-block]
+                (biff/form
+                 {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id reply) "/delete-reply")
+                  :class "inline"}
+                 [:button.link {:type "submit"} "Delete"])]
               (if user
                 [:.div
                  [:a.link {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/reply")
@@ -319,8 +319,9 @@
        [:div#reply]
        [:p.whitespace-pre-wrap.mb-6]
        (if (:comment/replies reply)
-         (let [new-recur-count (inc recur-count)]
-           (if (< recur-count 4)
+         (let [new-recur-count (inc recur-count)
+               max-recur-count 4]
+           (if (< recur-count max-recur-count)
              [:div.mx-3
               (reply-view db user admin owner work chapter reply new-recur-count)]
              [:div
@@ -344,7 +345,7 @@
        [:div {:hx-target "this" :hx-swap "outerHTML"}
         content
         (if (= user (:comment/owner comment))
-          [:.text-sm
+          [:div
            [:a.link {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/reply")
                      :hx-target "closest div"}
             "Reply"]
@@ -369,15 +370,14 @@
               [:button.link {:type "submit"} "Delete"])]
             (if admin
               [:div
-               [:.div
                 [:a.link {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/reply")
                           :hx-target "closest div"}
-                 "Reply"]]
-               [:span.w-2.inline-block]
-               (biff/form
-                {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/delete-comment")
-                 :class "inline"}
-                [:button.link {:type "submit"} "Delete"])]
+                 "Reply"]
+                [:span.w-2.inline-block]
+                (biff/form
+                 {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/delete-comment")
+                  :class "inline"}
+                 [:button.link {:type "submit"} "Delete"])]
               (if user
                 [:.div
                  [:a.link {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/reply")

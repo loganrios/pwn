@@ -36,6 +36,9 @@
           :in [uid]}
      user-id))
 
+(defn uid->username [db user-id]
+  (:user/username (biff/lookup db :xt/id user-id)))
+
 (defn genreid->name [db genre-id]
   (:genre/display-name (xt/entity db (keyword genre-id))))
 
