@@ -532,28 +532,46 @@
 (defn search [{:keys [biff/db params] :as sys}]
   (ui/page
    sys
-   (let [works (biff/lookup-all db :work/title (:search params))
-         authors (biff/lookup-all db :author/pen-name (:search params))]
-     (if (seq works)
-       (for [work works]
-         (let [{:work/keys [owner title primary-genre secondary-genre blurb]} work]
-           [:div
-            [:a.link.text-lg.font-semibold {:href (str "/work/" (:xt/id work))}
-             title]
-            " by "
-            (let [{:keys [xt/id author/pen-name]} (uid->author db owner)]
-              [:a.link {:href (str "/author/" id)}
-               pen-name])
+   (let [search-input (:search params)
+         regex (re-pattern (str "(?i)" search-input))
+         works (q db
+                  '{:find [works-list]
+                    :where [[works-list :work/title title]
+                            [(re-find re title)]]
+                    :in [re]}
+                  regex)
+         authors (q db
+                    '{:find [authors-list]
+                      :where [[authors-list :author/pen-name name]
+                              [(re-find re name)]]
+                      :in [re]}
+                    regex)]
+     [:div
+       (if (seq works)
+        (for [work works]
+          (let [work-info (biff/lookup db :xt/id (first work))
+                {:work/keys [owner title primary-genre secondary-genre blurb]} work-info]
             [:div
-             (if (= primary-genre secondary-genre)
-               [:div (genreid->name db primary-genre)]
-               [:div (genreid->name db primary-genre) " " (genreid->name db secondary-genre)])]
-            [:div
-             blurb]
-            [:.h-3]]))
+             [:a.link.text-lg.font-semibold {:href (str "/work/" (:xt/id work-info))}
+              title]
+             " by "
+             (let [{:keys [xt/id author/pen-name]} (uid->author db owner)]
+               [:a.link {:href (str "/author/" id)}
+                pen-name])
+             [:div
+              (if (= primary-genre secondary-genre)
+                [:div (genreid->name db primary-genre)]
+                [:div (genreid->name db primary-genre) " " (genreid->name db secondary-genre)])]
+             [:div
+              blurb]
+             [:.h-3]]))
+        [:div
+         "No Works Found."
+         [:.h-5]])
        (if (seq authors)
          (for [author authors]
-           (let [{:keys [xt/id author/user author/pen-name]} author
+           (let [author-info (biff/lookup db :xt/id (first author))
+                 {:keys [xt/id author/user author/pen-name]} author-info
                  author-works (author-works-list db (uid->works db user))]
              [:div
                "Author: "
@@ -564,7 +582,7 @@
                [:.h-3]
                author-works
                [:.h-5]]))
-         "No Results Found")))))
+         "No Authors Found.")])))
 
 (def features
   {:routes [""
