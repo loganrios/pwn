@@ -262,11 +262,14 @@
           {:comment/keys [content timestamp]} reply
           reply-owner (xt/entity db (:comment/owner reply))]
       [:div
-       [:.text-sm
+       [:div
         [:span.font-bold
          (if (= (:comment/owner reply) owner)
-           [:span.text-orange-600
-            (str "Author - " (:author/pen-name (uid->author db (:comment/owner reply))))]
+           (let [author (uid->author db (:comment/owner reply))]
+             [:div
+              "Author: "
+              [:a.link {:href (str "/author/" (:xt/id author))}
+                (:author/pen-name author)]])
            (:user/username reply-owner))]
         [:span.w-2.inline-block]
         [:span.text-gray-600 (biff/format-date timestamp "d MMM h:mm aa")]]
@@ -334,11 +337,14 @@
           {:comment/keys [content timestamp]} comment
           comment-owner (xt/entity db (:comment/owner comment))]
       [:div
-       [:.text-sm
+       [:div
         [:span.font-bold
          (if (= (:comment/owner comment) owner)
-           [:span.text-orange-600
-            (str "Author - " (:author/pen-name (uid->author db (:comment/owner comment))))]
+           (let [author (uid->author db (:comment/owner comment))]
+             [:div
+              "Author: "
+              [:a.link {:href (str "/author/" (:xt/id author))}
+                (:author/pen-name author)]])
            (:user/username comment-owner))]
         [:span.w-2.inline-block]
         [:span.text-gray-600 (biff/format-date timestamp "d MMM h:mm aa")]]
