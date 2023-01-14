@@ -419,7 +419,10 @@
                          (:user/followed user))]
      [:div
       [:div.text-xl.font-semibold title]
-      [:div.text-lg "by " (:author/pen-name (uid->author db owner))]
+      [:div.text-lg
+       "by "
+       [:a.link {:href (str "/author/" (:xt/id (uid->author db owner)))}
+        (:author/pen-name (uid->author db owner))]]
       [:.h-3]
       [:div.flex.items-center
        (when user-id
