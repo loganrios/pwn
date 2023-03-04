@@ -1,180 +1,169 @@
 (ns pwn.feat.auth
   (:require [com.biffweb :as biff]
             [pwn.ui :as ui]
+            [pwn.settings :as settings]
             [pwn.util :as util]
             [clj-http.client :as http]
             [rum.core :as rum]
             [xtdb.api :as xt]))
 
-(defn human? [{:keys [recaptcha/secret-key params]}]
-  (let [{:keys [success score]}
-        (:body
-         (http/post "https://www.google.com/recaptcha/api/siteverify"
-                    {:form-params {:secret secret-key
-                                   :response (:g-recaptcha-response params)}
-                     :as :json}))]
-    (and success (or (nil? score) (<= 0.5 score)))))
+(def email-disabled-notice
+  [:.text-sm.mt-3.bg-blue-100.rounded.p-2
+   "Until you add API keys for Postmark and reCaptcha, we'll print your sign-up "
+   "link to the console. See config.edn."])
 
-;; For extra protection, you can call out to an email verification API here to
-;; block spammy/high risk addresses.
-(defn email-valid? [req email]
-  (boolean (some->> email (re-matches #".+@.+\..+"))))
-
-(defn signin-template [{:keys [to url]}]
-  {:to to
-   :subject "Sign in to My Application"
-   :html-body (rum/render-static-markup
-               [:html
-                [:body
-                 [:p "We received a request to sign in to My Application using this email address."]
-                 [:p [:a {:href url :target "_blank"} "Click here to sign in."]]
-                 [:p "If you did not request this link, you can ignore this email."]]])
-   :message-stream "outbound"})
-
-(defn send-link! [req email url]
-  (and (human? req)
-       (email-valid? req email)
-       (util/send-email
-        req
-        (signin-template {:to email :url url}))))
-
-(defn send-token [{:keys [biff/base-url
-                          biff/jwt-secret
-                          anti-forgery-token
-                          params]
-                   :as req}]
-  (let [email (biff/normalize-email (:email params))
-        token (biff/jwt-encrypt
-               {:intent "signin"
-                :email email
-                :state (biff/sha256 anti-forgery-token)
-                :exp-in (* 60 60)}
-               jwt-secret)
-        url (str base-url "/auth/verify/" token)]
-    (if-not (util/email-signin-enabled? req)
-      (do
-        (println (str "Click here to sign in as " email ": " url))
-        {:headers {"location" "/auth/printed/"}
-         :status 303})
-      {:status 303
-       :headers {"location" (if (send-link! req email url)
-                              "/auth/sent/"
-                              "/auth/fail/")}})))
-
-(defn verify-token [{:keys [biff.xtdb/node
-                            biff/jwt-secret
-                            path-params
-                            session
-                            anti-forgery-token] :as req}]
-  (let [{:keys [intent email state]} (biff/jwt-decrypt (:token path-params) jwt-secret)
-        success (and (= intent "signin")
-                     (= state (biff/sha256 anti-forgery-token)))
-        get-user-id #(biff/lookup-id (xt/db node) :user/email email)
-        existing-user-id (when success (get-user-id))]
-    (when (and success (not existing-user-id))
-      (let [user-id (random-uuid)]
-        (biff/submit-tx req
-                        [{:db/doc-type :user
-                          :xt/id user-id
-                          :user/email email
-                          :user/username (str user-id)
-                          :user/joined-at :db/now
-                          :user/followed #{}}])))
-    (if-not success
-      {:status 303
-       :headers {"location" "/auth/fail/"}}
-      {:status 303
-       :headers {"location" "/dash"}
-       :session (assoc session :uid (or existing-user-id (get-user-id)))})))
-
-(defn recaptcha-disclosure [{:keys [link-class]}]
-  [:span "This site is protected by reCAPTCHA and the Google "
-   [:a {:href "https://policies.google.com/privacy"
-        :target "_blank"
-        :class link-class}
-    "Privacy Policy"] " and "
-   [:a {:href "https://policies.google.com/terms"
-        :target "_blank"
-        :class link-class}
-    "Terms of Service"] " apply."])
-
-(defn signin-form [{:keys [recaptcha/site-key] :as sys}]
-  (biff/form
-   {:id "signin-form"
-    :action "/auth/send"}
-   [:div [:label {:for "email"} "Email address:"]]
-   [:.h-1]
-   [:.flex
-    [:input#email
-     {:name "email"
-      :type "email"
-      :autocomplete "email"
-      :placeholder "Enter your email address"}]
-    [:.w-3]
-    [:button.btn.g-recaptcha
-     (merge
-      (when (util/email-signin-enabled? sys)
-        {:data-sitekey site-key
-         :data-callback "onSubscribe"
-         :data-action "subscribe"})
-      {:type "submit"})
-     "Sign in"]]
-   [:.h-1]
-   (if (util/email-signin-enabled? sys)
-     [:.text-sm (recaptcha-disclosure {:link-class "link"})]
-     [:.text-sm
-      "Doesn't need to be a real address. "
-      "Until you add API keys for Postmark and reCAPTCHA, we'll just print your sign-in "
-      "link to the console. See config.edn."])))
-
-(def recaptcha-scripts
-  [[:script {:src "https://www.google.com/recaptcha/api.js"
-             :async "async"
-             :defer "defer"}]
-   [:script (biff/unsafe
-             (str "function onSubscribe(token) { document.getElementById('signin-form').submit()}"))]])
-
-(defn home [sys]
+(defn signup-page [{:keys [biff/secret params] :as sys}]
   (ui/page
-   (merge sys
-          {:base/head (when (util/email-signin-enabled? sys)
-                        recaptcha-scripts)})
-   (when-not (get-in sys [:session :uid])
-     [:div (signin-form sys) [:.h-3]])))
+   (assoc sys ::ui/recaptcha true)
+   (biff/form
+    {:action "/auth/send-link"
+     :id "signup"
+     :hidden {:on-error "/signup"}}
+    (biff/recaptcha-callback "submitSignup" "signup")
+    [:h2.text-2xl.font-bold (str "Sign up for " settings/app-name)]
+    [:.h-3]
+    [:.flex
+     [:input#email {:name "email"
+                    :type "email"
+                    :autocomplete "email"
+                    :placeholder "Enter your email address"}]
+     [:.w-3]
+     [:button.btn.g-recaptcha
+      (merge (when-let [site-key (secret :recaptcha/site-key)]
+               {:data-sitekey site-key
+                :data-callback "submitSignup"})
+             {:type "submit"})
+      "Sign up"]]
+    (when-some [error (:error params)]
+      [:<>
+       [:.h-1]
+       [:.text-sm.text-red-600
+        (case error
+          "recaptcha" (str "You failed the recaptcha test. Try again, "
+                           "and make sure you aren't blocking scripts from Google.")
+          "invalid-email" "Invalid email. Try again with a different address."
+          "send-failed" (str "We weren't able to send an email to that address. "
+                             "If the problem persists, try another address.")
+          "There was an error.")]])
+    [:.h-1]
+    [:.text-sm "Already have an account? " [:a.link {:href "/auth/signin"} "Sign in"] "."]
+    [:.h-3]
+    biff/recaptcha-disclosure)))
 
-(defn signout [{:keys [session]}]
-  {:status 303
-   :headers {"location" "/"}
-   :session (dissoc session :uid)})
-
-(def signin-printed
+(defn link-sent [{:keys [params] :as sys}]
   (ui/page
-   {}
-   [:div
-    "The sign-in link was printed to the console. If you add API "
-    "keys for Postmark and reCAPTCHA, the link will be emailed to you instead."]))
+   sys
+   [:h2.text-xl.font-bold "Check your inbox"]
+   [:p "We've sent a sign-in link to " [:span.font-bold (:email params)] "."]))
 
-(def signin-sent
+(defn verify-email-page [{:keys [params] :as req}]
   (ui/page
-   {}
-   [:div "We've sent a sign-in link to your email address. Please check your inbox."]))
+   req
+   [:h2.text-2xl.font-bold (str "Sign up for " settings/app-name)]
+   [:.h-3]
+   (biff/form
+    {:action "/auth/verify-link"
+     :hidden {:token (:token params)}}
+    [:div [:label {:for "email"}
+           "It looks like you opened this link on a different device or browser than the one "
+           "you signed up on. For verification, please enter the email you signed up with:"]]
+    [:.h-3]
+    [:.flex
+     [:input#email {:name "email" :type "email"
+                    :placeholder "Enter your email address"}]
+     [:.w-3]
+     [:button.btn {:type "submit"}
+      "Sign in"]])
+   (when-some [error (:error params)]
+     [:.h-1]
+     [:.text-sm.text-red-600
+      (case error
+        "incorrect-email" "Incorrect email address. Try again."
+        "There was an error.")])))
 
-(def signin-fail
+(defn signin-page [{:keys [biff/secret params] :as sys}]
   (ui/page
-   {}
-   [:div
-    "Your sign-in request failed. There are several possible reasons:"]
-   [:ul
-    [:li "You failed the reCAPTCHA test."]
-    [:li "We think your email address is invalid or high risk."]
-    [:li "We tried to email the link to you, but there was an unexpected error."]
-    [:li "You opened the sign-in link on a different device or browser than the one you requested it on."]]))
+   (assoc sys ::ui/recaptcha true)
+   (biff/form
+    {:action "/auth/send-code"
+     :id "signin"
+     :hidden {:on-error "/signin"}}
+    (biff/recaptcha-callback "submitSignin" "signin")
+    [:h2.text-2xl.font-bold "Sign in to " settings/app-name]
+    [:.h-3]
+    [:.flex
+     [:input#email {:name "email"
+                    :type "email"
+                    :autocomplete "email"
+                    :placeholder "Enter your email address"}]
+     [:.w-3]
+     [:button.btn.g-recaptcha
+      (merge (when-let [site-key (secret :recaptcha/site-key)]
+               {:data-sitekey site-key
+                :data-callback "submitSignin"})
+             {:type "submit"})
+      "Sign in"]]
+    (when-some [error (:error params)]
+      [:<>
+       [:.h-1]
+       [:.text-sm.text-red-600
+        (case error
+          "recaptcha" (str "You failed the recaptcha test. Try again, "
+                           "and make sure you aren't blocking scripts from Google.")
+          "invalid-email" "Invalid email. Try again with a different address."
+          "send-failed" (str "We weren't able to send an email to that address. "
+                             "If the problem persists, try another address.")
+          "invalid-link" "Invalid or expired link. Sign in to get new link."
+          "not-signed-in" "You must be signed in to view that page."
+          "There was an error.")]])
+    [:.h-1]
+    [:.text-sm "Don't have an account yet? " [:a.link {:href "/auth/signup"} "Sign up"] "."]
+    [:.h-3]
+    biff/recaptcha-disclosure)))
+
+(defn enter-code-page [{:keys [biff/secret params] :as req}]
+  (ui/page
+   (assoc req ::ui/recaptcha true)
+   (biff/form
+    {:action "/auth/verify-code"
+     :id "code-form"
+     :hidden {:email (:email params)}}
+    (biff/recaptcha-callback "submitCode" "code-form")
+    [:div [:label {:for "code"} "Enter the 6-digit code that we sent to "
+           [:span.font-bold (:email params)]]]
+    [:.h-1]
+    [:.flex
+     [:input#code {:name "code" :type "text"}]
+     [:.w-3]
+     [:button.btn.g-recaptcha
+      (merge (when-let [site-key (secret :recaptcha/site-key)]
+               {:data-sitekey site-key
+                :data-callback "submitCode"})
+             {:type "submit"})
+      "Sign in"]])
+   (when-some [error (:error params)]
+     [:.h-1]
+     [:text-sm.text-red-600
+      (case error
+        "invalid-code" "Invalid code."
+        "There was an error.")])
+   [:.h-3]
+   (biff/form
+    {:action "/auth/send-code"
+     :id "signin"
+     :hidden {:email (:email params)
+              :on-error "/signin"}}
+    (biff/recaptcha-callback "submitSignin" "signin")
+    [:button.link.g-recaptcha
+     (merge (when-let [site-key (secret :recaptcha/site-key)]
+              {:data-sitekey site-key
+               :data-callback "submitSignin"})
+            {:type "submit"})
+     "Send another code."])))
 
 (def features
-  {:routes [["/auth/signin"         {:get home}]
-            ["/auth/send"          {:post send-token}]
-            ["/auth/verify/:token" {:get verify-token}]
-            ["/auth/signout"       {:post signout}]]
-   :static {"/auth/printed/" signin-printed
-            "/auth/sent/" signin-sent
-            "/auth/fail/" signin-fail}})
+  {:routes [["/signup" {:get signup-page}]
+            ["/link-sent" {:get link-sent}]
+            ["/verify-link" {:get verify-email-page}]
+            ["/signin" {:get signin-page}]
+            ["/verify-code" {:get enter-code-page}]]})

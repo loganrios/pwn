@@ -62,4 +62,5 @@
              [:comment/timestamp inst?]
              [:comment/replies {:optional true} [:set :comment/id]]]})
 
-(def malli-opts {:registry (malr/composite-registry malc/default-registry schema)})
+(def features
+  {:schema schema})

@@ -6,7 +6,7 @@
   (fn [{:keys [session] :as req}]
     (if (some? (:uid session))
       {:status 303
-       :headers {"Location" "/dash"}}
+       :headers {"Location" "/signin?error=not-signed-in"}}
       (handler req))))
 
 (defn wrap-signed-in [handler]

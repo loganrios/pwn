@@ -9,6 +9,7 @@
          logs        com.biffweb.tasks/logs
          prod-repl   com.biffweb.tasks/prod-repl
          prod-dev    com.biffweb.tasks/prod-dev
+         generate-secrets com.biffweb.tasks/generate-secrets
          hello       pwn.tasks/hello
 
          post-receive com.biffweb.tasks/post-receive

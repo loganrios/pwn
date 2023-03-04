@@ -1,17 +1,21 @@
 (ns pwn.ui
-  (:require [clojure.java.io :as io]
-            [com.biffweb :as biff]))
+  (:require
+   [cheshire.core :as cheshire]
+   [clojure.java.io :as io]
+   [pwn.settings :as settings]
+   [com.biffweb :as biff]
+   [ring.middleware.anti-forgery :as csrf]))
 
 (defn css-path []
   (if-some [f (io/file (io/resource "public/css/main.css"))]
     (str "/css/main.css?t=" (.lastModified f))
     "/css/main.css"))
 
-(defn base [opts & body]
+(defn base [{:keys [::recaptcha] :as opts} & body]
   (apply
    biff/base-html
    (-> opts
-       (merge #:base{:title "Project Web Novel"
+       (merge #:base{:title settings/app-name
                      :lang "en-US"
                      :icon "/img/glider.png"
                      :description "The author-first platform for online fiction."})
@@ -19,7 +23,11 @@
                             (concat [[:link {:rel "stylesheet" :href (css-path)}]
                                      [:script {:src "https://unpkg.com/htmx.org@1.8.4"}]
                                      [:script {:src "https://unpkg.com/hyperscript.org@0.9.7"}]
-                                     [:script (biff/unsafe (slurp (io/resource "darkmode.js")))]]
+                                     [:script (biff/unsafe (slurp (io/resource "darkmode.js")))]
+                                     (when recaptcha
+                                       [:script {:src "https://www.google.com/recaptcha/api.js"
+                                                 :async "async" :defer "defer"}])]
+                                      
                                     head))))
    body))
 
@@ -77,6 +85,9 @@
    opts
    [:.dark:bg-zinc-900.dark:text-white.h-screen.w-screen
     [:.p-3.mx-auto.max-w-screen-md.w-full
+     (when (bound? #'csrf/*anti-forgery-token*)
+       {:hx-headers (cheshire/generate-string
+                     {:x-csrf-token csrf/*anti-forgery-token*})})
      (topbar opts)
      body
      footer]]))
