@@ -46,7 +46,7 @@
                              "If the problem persists, try another address.")
           "There was an error.")]])
     [:.h-1]
-    [:.text-sm "Already have an account? " [:a.link {:href "/auth/signin"} "Sign in"] "."]
+    [:.text-sm "Already have an account? " [:a.link {:href "/signin"} "Sign in"] "."]
     [:.h-3]
     biff/recaptcha-disclosure)))
 
@@ -117,7 +117,7 @@
           "not-signed-in" "You must be signed in to view that page."
           "There was an error.")]])
     [:.h-1]
-    [:.text-sm "Don't have an account yet? " [:a.link {:href "/auth/signup"} "Sign up"] "."]
+    [:.text-sm "Don't have an account yet? " [:a.link {:href "/signup"} "Sign up"] "."]
     [:.h-3]
     biff/recaptcha-disclosure)))
 

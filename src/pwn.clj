@@ -22,9 +22,10 @@
   [dash/features
    settings/features
    auth/features
-   (biff/authentication-plugin {})
+   (biff/authentication-plugin {:biff.auth/app-path "/"})
    admin/features
    home/features
+   schema/features
    sponsee/features
    sponsor/features
    worker/features])

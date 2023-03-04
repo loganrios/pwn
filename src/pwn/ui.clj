@@ -42,7 +42,7 @@
       (if uid
         [:a.link.cursor-pointer
          {:_ (str "on click toggle @hidden on #profile-nav")} "Me ▼"]
-        [:a.link {:href "/auth/signin"} "Register/Login"])]
+        [:a.link {:href "/signin"} "Register"])]
      [:div#profile-nav
       {:hidden true}
       [:.h-3]

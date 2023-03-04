@@ -7,7 +7,7 @@
    :user [:map {:closed true}
           [:xt/id :user/id]
           [:user/email :string]
-          [:user/username :string]
+          [:user/username {:optional true} :string]
           [:user/followed {:optional true} [:set :work/id]]
           [:user/joined-at inst?]
           [:user/stripe-account {:optional true} :string]
@@ -16,7 +16,6 @@
    :sponsorship/id :uuid
    :sponsorship [:map {:closed true}
                  :xt/id :sponsorship/id]
-
 
    :admin/id :uuid
    :admin [:map {:closed true}

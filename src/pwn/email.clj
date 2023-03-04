@@ -73,6 +73,8 @@
   (println "TO:" (:to form-params))
   (println "SUBJECT" (:subject form-params))
   (println)
+  (println (:text-body form-params))
+  (println)
   (println "To send emails instead of printing them to the console, add your "
            "API keys for Postmark and Recaptcha to config.edn.")
   true)
