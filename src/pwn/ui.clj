@@ -17,7 +17,7 @@
    (-> opts
        (merge #:base{:title settings/app-name
                      :lang "en-US"
-                     :icon "/img/glider.png"
+                     :icon "/img/pwn-square.png"
                      :description "The author-first platform for online fiction."})
        (update :base/head (fn [head]
                             (concat [[:link {:rel "stylesheet" :href (css-path)}]
