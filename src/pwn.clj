@@ -82,7 +82,6 @@
               :biff/components components})]
     (generate-assets! ctx)
     (log/info "Go to" (:biff/base-url ctx))))
-              
 
 (defn -main [& args]
   (start)

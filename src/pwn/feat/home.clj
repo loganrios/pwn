@@ -82,48 +82,48 @@
 (defn author-works-list [db works]
   (if (seq works)
     [:div
-      (for [work works]
-        (let [work-map (first work)
-              {:work/keys [title primary-genre secondary-genre blurb]} work-map]
+     (for [work works]
+       (let [work-map (first work)
+             {:work/keys [title primary-genre secondary-genre blurb]} work-map]
+         [:div
+          [:a.link {:href (str "/work/" (:xt/id work-map))}
+           title]
           [:div
-           [:a.link {:href (str "/work/" (:xt/id work-map))}
-            title]
-           [:div
-            (if (= primary-genre secondary-genre)
-              [:div (genreid->name db primary-genre)]
-              [:div (genreid->name db primary-genre) " " (genreid->name db secondary-genre)])
-            [:div blurb]]
-           [:.h-3]]))]
+           (if (= primary-genre secondary-genre)
+             [:div (genreid->name db primary-genre)]
+             [:div (genreid->name db primary-genre) " " (genreid->name db secondary-genre)])
+           [:div blurb]]
+          [:.h-3]]))]
     [:div "This author has no works."]))
 
 (defn works-list [db works]
   (for [work works]
     (let [{:work/keys [owner title primary-genre secondary-genre blurb chapters]} work]
       [:div
-        [:a.link.text-lg.font-semibold {:href (str "/work/" (:xt/id work))}
-         title]
-        " by "
-        (let [{:keys [xt/id author/pen-name]} (uid->author db owner)]
-          [:a.link {:href (str "/author/" id)}
-           pen-name])
-        [:div
-         (if (= primary-genre secondary-genre)
-           [:div (genreid->name db primary-genre)]
-           [:div (genreid->name db primary-genre) " " (genreid->name db secondary-genre)])]
-        [:.h-1]
-        blurb
-        [:.h-3]
-        (when (seq chapters)
-          [:div
-            "Most Recent Post: "
-            (first (recent-chapters-list db work chapters))])
-        [:.h-1]
-        [:div.flex.flex-row.justify-between
-         [:span (str (follower-count db (:xt/id work)) " Followers")]
-         [:span.w-2.inline-block]
-         [:span (str (count chapters) " Chapters")]
-         [:span.w-2.inline-block]]
-        [:.h-4.border-b]])))
+       [:a.link.text-lg.font-semibold {:href (str "/work/" (:xt/id work))}
+        title]
+       " by "
+       (let [{:keys [xt/id author/pen-name]} (uid->author db owner)]
+         [:a.link {:href (str "/author/" id)}
+          pen-name])
+       [:div
+        (if (= primary-genre secondary-genre)
+          [:div (genreid->name db primary-genre)]
+          [:div (genreid->name db primary-genre) " " (genreid->name db secondary-genre)])]
+       [:.h-1]
+       blurb
+       [:.h-3]
+       (when (seq chapters)
+         [:div
+          "Most Recent Post: "
+          (first (recent-chapters-list db work chapters))])
+       [:.h-1]
+       [:div.flex.flex-row.justify-between
+        [:span (str (follower-count db (:xt/id work)) " Followers")]
+        [:span.w-2.inline-block]
+        [:span (str (count chapters) " Chapters")]
+        [:span.w-2.inline-block]]
+       [:.h-4.border-b]])))
 
 (defn follow-work [{:keys [session biff/db work] :as req}]
   (let [user-id (:uid session)
@@ -183,12 +183,12 @@
   (let [comment-id (:xt/id comment)
         prev-comments (:chapter/comments chapter)]
     (biff/submit-tx req
-                   [{:db/op :delete
-                     :xt/id comment-id}
-                    {:db/doc-type :chapter
-                     :db/op :merge
-                     :xt/id (:xt/id chapter)
-                     :chapter/comments (vec (disj (set prev-comments) comment-id))}]))
+                    [{:db/op :delete
+                      :xt/id comment-id}
+                     {:db/doc-type :chapter
+                      :db/op :merge
+                      :xt/id (:xt/id chapter)
+                      :chapter/comments (vec (disj (set prev-comments) comment-id))}]))
   {:status 303
    :headers {"Location" (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter))}})
 
@@ -224,7 +224,7 @@
       :placeholder "Enter your reply here."}]
     [:button.btn {:type "submit"} "Submit"]
     [:button.link {:href (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter))}
-            "Cancel"]]))
+     "Cancel"]]))
 
 (defn reply-comment [{:keys [session work chapter comment params] :as req}]
   (let [comment-id (random-uuid)
@@ -247,12 +247,12 @@
         parent-comment (biff/lookup db :comment/replies reply-id)
         prev-comments (:comment/replies parent-comment)]
     (biff/submit-tx req
-                   [{:db/op :delete
-                     :xt/id reply-id}
-                    {:db/doc-type :comment
-                     :db/op :merge
-                     :xt/id (:xt/id parent-comment)
-                     :comment/replies (disj prev-comments reply-id)}]))
+                    [{:db/op :delete
+                      :xt/id reply-id}
+                     {:db/doc-type :comment
+                      :db/op :merge
+                      :xt/id (:xt/id parent-comment)
+                      :comment/replies (disj prev-comments reply-id)}]))
   {:status 303
    :headers {"Location" (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter))}})
 
@@ -269,7 +269,7 @@
              [:div
               "Author: "
               [:a.link {:href (str "/author/" (:xt/id author))}
-                (:author/pen-name author)]])
+               (:author/pen-name author)]])
            (:user/username reply-owner))]
         [:span.w-2.inline-block]
         [:span.text-gray-600 (biff/format-date timestamp "d MMM h:mm aa")]]
@@ -305,14 +305,14 @@
               [:button.link {:type "submit"} "Delete"])]
             (if admin
               [:div
-                [:a.link {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id reply) "/reply")
-                          :hx-target "closest div"}
-                 "Reply"]
-                [:span.w-2.inline-block]
-                (biff/form
-                 {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id reply) "/delete-reply")
-                  :class "inline"}
-                 [:button.link {:type "submit"} "Delete"])]
+               [:a.link {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id reply) "/reply")
+                         :hx-target "closest div"}
+                "Reply"]
+               [:span.w-2.inline-block]
+               (biff/form
+                {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id reply) "/delete-reply")
+                 :class "inline"}
+                [:button.link {:type "submit"} "Delete"])]
               (if user
                 [:.div
                  [:a.link {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/reply")
@@ -344,7 +344,7 @@
              [:div
               "Author: "
               [:a.link {:href (str "/author/" (:xt/id author))}
-                (:author/pen-name author)]])
+               (:author/pen-name author)]])
            (:user/username comment-owner))]
         [:span.w-2.inline-block]
         [:span.text-gray-600 (biff/format-date timestamp "d MMM h:mm aa")]]
@@ -376,14 +376,14 @@
               [:button.link {:type "submit"} "Delete"])]
             (if admin
               [:div
-                [:a.link {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/reply")
-                          :hx-target "closest div"}
-                 "Reply"]
-                [:span.w-2.inline-block]
-                (biff/form
-                 {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/delete-comment")
-                  :class "inline"}
-                 [:button.link {:type "submit"} "Delete"])]
+               [:a.link {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/reply")
+                         :hx-target "closest div"}
+                "Reply"]
+               [:span.w-2.inline-block]
+               (biff/form
+                {:action (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/delete-comment")
+                 :class "inline"}
+                [:button.link {:type "submit"} "Delete"])]
               (if user
                 [:.div
                  [:a.link {:hx-get (str "/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/comment/" (:xt/id comment) "/reply")
@@ -538,9 +538,24 @@
                 [:.h-3]])
              (str "You are not following any works."))])))
 
+(defn new-search-form []
+  (biff/form
+   {:action "/search"}
+   [:input#search
+    {:name "search"
+     :type "text"
+     :placeholder "Search..."}]
+   [:button.btn {:type "submit"} "Submit"]))
+
+(defn new-search-page [sys]
+  (ui/page
+   sys
+   (new-search-form)))
+
 (defn search [{:keys [biff/db params] :as sys}]
   (ui/page
    sys
+   (new-search-form)
    (let [search-input (:search params)
          regex (re-pattern (str "(?i)" search-input))
          works (q db
@@ -556,7 +571,7 @@
                       :in [re]}
                     regex)]
      [:div
-       (if (seq works)
+      (if (seq works)
         (for [work works]
           (let [work-info (biff/lookup db :xt/id (first work))
                 {:work/keys [owner title primary-genre secondary-genre blurb]} work-info]
@@ -577,26 +592,27 @@
         [:div
          "No Works Found."
          [:.h-5]])
-       (if (seq authors)
-         (for [author authors]
-           (let [author-info (biff/lookup db :xt/id (first author))
-                 {:keys [xt/id author/user author/pen-name]} author-info
-                 author-works (author-works-list db (uid->works db user))]
-             [:div
-               "Author: "
-               [:a.link {:href (str "/author/" id)}
-                pen-name]
-               [:.h-5]
-               (str "Works by " pen-name ":")
-               [:.h-3]
-               author-works
-               [:.h-5]]))
-         "No Authors Found.")])))
+      (if (seq authors)
+        (for [author authors]
+          (let [author-info (biff/lookup db :xt/id (first author))
+                {:keys [xt/id author/user author/pen-name]} author-info
+                author-works (author-works-list db (uid->works db user))]
+            [:div
+             "Author: "
+             [:a.link {:href (str "/author/" id)}
+              pen-name]
+             [:.h-5]
+             (str "Works by " pen-name ":")
+             [:.h-3]
+             author-works
+             [:.h-5]]))
+        "No Authors Found.")])))
 
 (def features
   {:routes [""
             ["/" {:get home}]
-            ["/search" {:post search}]
+            ["/search" {:get new-search-page
+                        :post search}]
             ["/user/followed" {:get followed}]
             ["/author/:author-id" {:middleware [wrap-author]}
              ["" {:get author}]]

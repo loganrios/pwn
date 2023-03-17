@@ -21,9 +21,8 @@
                      :description "The author-first platform for online fiction."})
        (update :base/head (fn [head]
                             (concat [[:link {:rel "stylesheet" :href (css-path)}]
-                                     [:script {:src "https://unpkg.com/htmx.org@1.8.4"}]
-                                     [:script {:src "https://unpkg.com/hyperscript.org@0.9.7"}]
-                                     [:script (biff/unsafe (slurp (io/resource "darkmode.js")))]
+                                     [:script {:src "https://unpkg.com/htmx.org@1.8.6"}]
+                                     [:script {:src "https://unpkg.com/hyperscript.org@0.9.8"}]
                                      (when recaptcha
                                        [:script {:src "https://www.google.com/recaptcha/api.js"
                                                  :async "async" :defer "defer"}])]
@@ -31,63 +30,42 @@
                                     head))))
    body))
 
-(defn topbar [sys]
-  (let [uid (get-in sys [:session :uid])]
-    [:nav#nav
-     [:div.container.flex.flex-wrap.items-center.justify-between.mx-auto
-      [:div.flex.flex-row.items-center
-       [:a.link.text-xl.font-semibold {:href "/"} "Project Web Novel"]
-       [:img.w-10.mx-2 {:src "/img/logo.svg"}]]
-      [:button.btn.mx-6.my-3 {:onclick "toggleDarkMode()"} "Toggle Dark Mode"]
-      (if uid
-        [:a.link.cursor-pointer
-         {:_ (str "on click toggle @hidden on #profile-nav")} "Me ▼"]
-        [:a.link {:href "/signin"} "Register"])]
-     [:div#profile-nav
-      {:hidden true}
-      [:.h-3]
-      [:div {:class '[container flex flex-wrap items-center
-                      justify-between mx-auto bg-gray-50
-                      dark:bg-zinc-700 rounded-md py-2 px-5]}
-       [:a.link {:href "/user/followed"} "Followed"]
-       [:a.link {:href "/dash"} "Dashboard"]
-       [:a.link {:href "/user/settings"} "Settings"]
-       (biff/form {:action "/auth/signout" :class "inline"}
-                  [:button.link {:type "submit"} "Sign out"])]
-      [:.h-3]]
-     [:div.container.flex.flex-wrap.items-center.justify-between.mx-auto
-      [:a.link {:href "/genre"} "Genres"]
-      [:div
-       {:class "search-container"}
-       (biff/form
-        {:action "/search"}
-        [:input#search
-         {:name "search"
-          :type "text"
-          :placeholder "Search..."}]
-        [:button.btn {:type "submit"}
-         "Submit"])]]
-     [:.h-5]]))
+(defn header [{:keys [session]}]
+  [:header.bg-slate-800.py-2
+   [:div {:class '[flex mx-auto items-center text-white gap-4
+                   text-lg flex-wrap px-3 max-w-screen-md]}
+    [:a {:href "/"} [:img.h-10 {:alt "pwn.ink logo" :src "/img/pwn-herb.png"}]]
+    [:.flex-grow]
+    [:a.hover:underline {:href "/genre"} "Genres"]
+    [:a.hover:underline {:href "/search"} "Search"]
+    (if (:uid session)
+      [:a.hover:underline {:href "/user/settings"} "Me"]
+      [:a.hover:underline {:href "/signin"} "Sign in"])]])
 
-(def footer
+(defn footer [{:keys [::recaptcha]}]
   (let [yr (biff/format-date (biff/now) "yyyy")]
-    [:footer.flex.flex-col.justify-center.items-center.text-xs
-     [:.h-6]
-     [:div.text-xs.text-gray-500 "Project Web Novel © " yr " Keionsoft Consulting, LLC."]
-     [:.h-3]
-     [:div.flex.flex-row.justify-center.items-center
-      [:div.px-2 [:a.link {:href "mailto:pwn@keionsoft.com"} "Contact Us"]]
-      [:div.px-2 [:a.link {:href "https://github.com/loganrios/pwn"} "Source Code"]]
-      [:div.px-2 [:a.link {:href "https://keionsoft.com"} "Parent Company"]]]]))
+    [:footer.flex.flex-col.justify-center.items-center.text-xs.py-4.bg-slate-800
+     [:.text-xs.text-slate-400 "pwn.ink © " yr " Keionsoft Consulting, LLC."]
+     [:.h-2]
+     [:.flex.flex-row
+      [:a.text-slate-400.hover:underline.px-2 {:href "maito:pwn@keionsoft.com"} "Contact Us"]
+      [:a.text-slate-400.hover:underline.px-2 {:href "https://github.com/loganrios/pwn"} "Source Code"]
+      [:a.text-slate-400.hover:underline.px-2 {:href "https://keionsoft.com"} "Parent Company"]]
+     [:.h-2]
+     (when recaptcha [:<> [:.h-2] biff/recaptcha-disclosure])]))
 
 (defn page [opts & body]
   (base
    opts
-   [:.dark:bg-zinc-900.dark:text-white.h-screen.w-screen
+   (header opts)
+   [:.flex-grow.bg-slate-50
     [:.p-3.mx-auto.max-w-screen-md.w-full
      (when (bound? #'csrf/*anti-forgery-token*)
        {:hx-headers (cheshire/generate-string
                      {:x-csrf-token csrf/*anti-forgery-token*})})
-     (topbar opts)
-     body
-     footer]]))
+     body]]
+   [:.flex-grow.bg-slate-50]
+   (footer opts)))
+
+(defn section [& body]
+  (into [:section.bg-slate-50.shadow.rounded.p-3] body))
