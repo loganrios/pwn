@@ -36,6 +36,8 @@
      [:div
       (user-info-form user)]
      [:.h-3]
+     [:a.link {:href "/user/followed"} "Followed Works"]
+     [:.h-3]
      [:a.link {:href "/dash"} "Author Dashboard"]
      [:.h-3]
      [:a.link {:href "/user/settings/sponsor"} "Sponsor Dashboard"])))

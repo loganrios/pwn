@@ -64,7 +64,10 @@
            (biff/form
             {:action (str "/dash/work/" (:xt/id work-map) "/delete")
              :class "inline"}
-            [:button.link {:type "submit"} "Delete"])]))]]
+            [:button.link
+             {:type "submit"
+              :onclick "return confirm('Are you sure you want to delete?')"}
+             "Delete"])]))]]
     [:div "You have no works."]))
 
 (defn chapters-list [db work chapters]
@@ -79,7 +82,10 @@
        (biff/form
         {:action (str "/dash/work/" (:xt/id work) "/chapter/" (:xt/id chapter) "/delete")
          :class "inline"}
-        [:button.link {:type "submit"} "Delete"])])
+        [:button.link
+         {:type "submit"
+          :onclick "return confirm('Are you sure you want to delete?')"}
+         "Delete"])])
     [:div "You have no chapters."]))
 
 (defn new-author [{:keys [params session] :as req}]
