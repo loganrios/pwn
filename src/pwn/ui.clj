@@ -38,8 +38,20 @@
     [:a.hover:underline {:href "/genre"} "Genres"]
     [:a.hover:underline {:href "/search"} "Search"]
     (if (:uid session)
-      [:a.hover:underline {:href "/user/settings"} "Me"]
-      [:a.hover:underline {:href "/signin"} "Sign in"])]])
+      [:a.hover:underline.cursor-pointer
+       {:_ (str "on click toggle .hidden on #user-menu"
+                " then if #user-menu matches .hidden"
+                "         put 'Me ▼' into me"
+                "         otherwise put 'Me ▲' into me")}
+       "Me ▼"]
+      [:a.hover:underline {:href "/signin"} "Sign in"])]
+   [:div#user-menu
+    {:class '[flex flex-col hidden justify-center items-center text-white]}
+    [:a.hover:underline {:href "/user/followed"} "Followed Works"]
+    [:a.hover:underline {:href "/user/settings"} "User Settings"]
+    [:a.hover:underline {:href "/dash"} "Author Dashboard"]
+    (biff/form {:action "/auth/signout" :class "inline"}
+               [:button.hover:underline {:type "submit"} "Sign out"])]])
 
 (defn footer [{:keys [::recaptcha]}]
   (let [yr (biff/format-date (biff/now) "yyyy")]
