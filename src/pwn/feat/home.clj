@@ -96,6 +96,13 @@
           [:.h-3]]))]
     [:div "This author has no works."]))
 
+(defn truncate-blurb [blurb]
+  (let [max-length 240
+        first-blurb-line (first (str/split blurb #"\n"))]
+    (if (< (count first-blurb-line) max-length)
+      first-blurb-line
+      (str (subs first-blurb-line 0 (- max-length 1)) "..."))))
+
 (defn works-list [db works]
   (for [work works]
     (let [{:work/keys [owner title primary-genre secondary-genre blurb chapters]} work]
@@ -111,7 +118,7 @@
           [:div (genreid->name db primary-genre)]
           [:div (genreid->name db primary-genre) " " (genreid->name db secondary-genre)])]
        [:.h-1]
-       blurb
+       [:div(truncate-blurb blurb)]
        [:.h-3]
        (when (seq chapters)
          [:div
@@ -437,7 +444,8 @@
         [:div (genreid->name db primary-genre) " " (genreid->name db secondary-genre)])
       [:.h-3]
       [:.h-3]
-      [:div.bg-gray-100.dark:bg-zinc-700.rounded-md.p-5 blurb]
+      [:div.whitespace-pre-line.bg-gray-100.dark:bg-zinc-700.rounded-md.p-5
+       blurb]
       [:.h-3]
       [:div (chapters-list db work chapters)]])))
 
@@ -458,7 +466,7 @@
         [:.h-3]
         (chapter-navigation (:xt/id work) previous-chapter-id next-chapter-id)
         [:.h-6]
-        [:div
+        [:div.font-serif.bg-white.p-5.rounded.shadow.w-full
          (biff/unsafe content)]
         [:.h-6]
         (chapter-navigation (:xt/id work) previous-chapter-id next-chapter-id)

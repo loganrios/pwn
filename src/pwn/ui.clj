@@ -26,14 +26,13 @@
                                      (when recaptcha
                                        [:script {:src "https://www.google.com/recaptcha/api.js"
                                                  :async "async" :defer "defer"}])]
-                                      
                                     head))))
    body))
 
 (defn header [{:keys [session]}]
   [:header.bg-slate-800.py-2
    [:div {:class '[flex mx-auto items-center text-white gap-4
-                   text-lg flex-wrap px-3 max-w-screen-md]}
+                   text-lg flex-wrap px-3 max-w-screen-lg]}
     [:a {:href "/"} [:img.h-10 {:alt "pwn.ink logo" :src "/img/pwn-herb.png"}]]
     [:.flex-grow]
     [:a.hover:underline {:href "/genre"} "Genres"]
@@ -59,7 +58,7 @@
    opts
    (header opts)
    [:.flex-grow.bg-slate-50
-    [:.p-3.mx-auto.max-w-screen-md.w-full
+    [:.p-3.mx-auto.max-w-screen-lg.w-full
      (when (bound? #'csrf/*anti-forgery-token*)
        {:hx-headers (cheshire/generate-string
                      {:x-csrf-token csrf/*anti-forgery-token*})})
