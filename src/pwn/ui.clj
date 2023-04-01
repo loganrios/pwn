@@ -21,6 +21,7 @@
                      :description "The author-first platform for online fiction."})
        (update :base/head (fn [head]
                             (concat [[:link {:rel "stylesheet" :href (css-path)}]
+                                     [:link {:rel "manifest" :href "manifest.json"}]
                                      [:script {:src "https://unpkg.com/htmx.org@1.8.6"}]
                                      [:script {:src "https://unpkg.com/hyperscript.org@0.9.8"}]
                                      (when recaptcha

@@ -1,0 +1,24 @@
+{
+  "name": "pwn.ink",
+  "short_name": "pwn",
+  "description": "The author-first platform for web fiction.",
+  "icons": [
+    {
+      "src": "img/pwn-32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "img/pwn-144.png",
+      "sizes": "144x144",
+      "type": "image/png"
+    },
+    {
+      "src": "img/pwn-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone"
+}
