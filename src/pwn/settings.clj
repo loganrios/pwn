@@ -1,3 +1,3 @@
 (ns pwn.settings)
 
-(def app-name "Project Web Novel")
+(def app-name "pwn.ink")

@@ -1,6 +1,6 @@
 #+title: PWN Redux
 
-A web fiction platform for authors and readers, built with [[https://biffweb.com][Biff]] and hosted at [[https://projectwebnovel.com][Project Web Novel]].
+A web fiction platform for authors and readers, built with [[https://biffweb.com][Biff]] and hosted at https://pwn.ink.
 
 * Open-Source Disclaimer
 While PWN's source code is publicly available, please note that this is for the purposes of transparency with our user community--not necessarily to encourage others to host their own instance of this application. You can certainly attempt to do so, but please note that this is not a use case that will be documented or explicitly supported.
